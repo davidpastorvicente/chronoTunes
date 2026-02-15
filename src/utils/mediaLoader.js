@@ -1,5 +1,4 @@
-import { songSets } from '../data/songs';
-import { movieSets } from '../data/movies';
+import { songSets, movieSets } from '../data/media';
 
 /**
  * Load media items based on category and content set
