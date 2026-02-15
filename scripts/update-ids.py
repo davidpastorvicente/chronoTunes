@@ -8,99 +8,54 @@ Usage:
     python3 scripts/update-ids.py --force   # Re-fetch all IDs, even if present
 """
 
-from ytmusicapi import YTMusic
-import re
+import json
 import sys
 import time
+
+from ytmusicapi import YTMusic
 
 # Import common utilities
 from common import fetch_youtube_id, fetch_deezer_id
 
+
 def extract_songs_from_file(filepath):
     """Extract all songs from the data file."""
     with open(filepath, 'r', encoding='utf-8') as f:
-        content = f.read()
+        songs = json.load(f)
     
-    # Pattern to match songs with optional fields
-    pattern = r'\{\s*title:\s*"([^"]+)",\s*artist:\s*"([^"]+)",\s*year:\s*(\d+)(?:,\s*youtubeId:\s*"([^"]*)")?(?:,\s*deezerId:\s*"([^"]*)")?\s*\}'
-    
-    songs = []
-    for match in re.finditer(pattern, content):
-        song = {
-            'title': match.group(1),
-            'artist': match.group(2),
-            'year': int(match.group(3)),
-            'youtubeId': match.group(4) if match.group(4) else None,
-            'deezerId': match.group(5) if match.group(5) else None
-        }
-        songs.append(song)
-    
-    return songs, content
+    return songs
 
 
 def update_songs_file(filepath, youtube_updates, deezer_updates):
     """Update the data file with new YouTube IDs and Deezer IDs."""
     with open(filepath, 'r', encoding='utf-8') as f:
-        content = f.read()
+        songs = json.load(f)
     
-    # First, update YouTube IDs
+    # Update YouTube IDs
     for song_key, youtube_id in youtube_updates.items():
         title, artist = song_key
         
-        # Pattern to find song and update/add youtubeId
-        pattern_with_id = rf'(\{{\s*title:\s*"{re.escape(title)}",\s*artist:\s*"{re.escape(artist)}",\s*year:\s*\d+,\s*youtubeId:\s*")[^"]*(")' 
-        
-        def replacer_with_id(match):
-            return match.group(1) + youtube_id + match.group(2)
-        
-        new_content = re.sub(pattern_with_id, replacer_with_id, content, flags=re.DOTALL)
-        
-        # If no change, song doesn't have youtubeId yet, add it
-        if new_content == content:
-            pattern_without_id = rf'(\{{\s*title:\s*"{re.escape(title)}",\s*artist:\s*"{re.escape(artist)}",\s*year:\s*\d+)((?:,\s*deezerId:\s*"[^"]*")*\s*\}})'
-            
-            def replacer_without_id(match):
-                return match.group(1) + f', youtubeId: "{youtube_id}"' + match.group(2)
-            
-            new_content = re.sub(
-                pattern_without_id, 
-                replacer_without_id, 
-                content, 
-                flags=re.DOTALL
-            )
-        
-        content = new_content
+        # Find the song and update it
+        for song in songs:
+            if song['title'] == title and song['artist'] == artist:
+                song['youtubeId'] = youtube_id
+                break
     
-    # Then, update Deezer IDs
+    # Update Deezer IDs
     for song_key, deezer_id in deezer_updates.items():
         title, artist = song_key
         
-        # Update deezerId
-        pattern_with_id = rf'(\{{\s*title:\s*"{re.escape(title)}",\s*artist:\s*"{re.escape(artist)}",\s*year:\s*\d+,\s*youtubeId:\s*"[^"]*",\s*deezerId:\s*")[^"]*(")' 
-        
-        def replacer_with_id(match):
-            return match.group(1) + deezer_id + match.group(2)
-        
-        new_content = re.sub(pattern_with_id, replacer_with_id, content, flags=re.DOTALL)
-        
-        # If no change, add deezerId
-        if new_content == content:
-            pattern_without_id = rf'(\{{\s*title:\s*"{re.escape(title)}",\s*artist:\s*"{re.escape(artist)}",\s*year:\s*\d+,\s*youtubeId:\s*"[^"]*")(\s*\}})'
-            
-            def replacer_without_id(match):
-                return match.group(1) + f', deezerId: "{deezer_id}"' + match.group(2)
-            
-            new_content = re.sub(
-                pattern_without_id, 
-                replacer_without_id, 
-                content, 
-                flags=re.DOTALL
-            )
-        
-        content = new_content
+        # Find the song and update it
+        for song in songs:
+            if song['title'] == title and song['artist'] == artist:
+                song['deezerId'] = deezer_id
+                break
     
+    # Sort by year and write back
+    songs.sort(key=lambda x: x.get('year', 0))
     with open(filepath, 'w', encoding='utf-8') as f:
-        f.write(content)
+        json.dump(songs, f, indent=2, ensure_ascii=False)
+
 
 def main():
     # Check for --force flag
@@ -108,8 +63,8 @@ def main():
     
     youtube_failed, deezer_failed = False, False
     filepaths = [
-        'src/data/english.js',
-        'src/data/spanish.js'
+        'src/data/songs/english.json',
+        'src/data/songs/spanish.json'
     ]
     
     print("=" * 60)
@@ -127,7 +82,7 @@ def main():
         
         # Extract songs from file
         print("📖 Reading file...")
-        songs, content = extract_songs_from_file(filepath)
+        songs = extract_songs_from_file(filepath)
         print(f"✓ Found {len(songs)} songs in file\n")
         
         # Find songs to process

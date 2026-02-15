@@ -147,7 +147,7 @@ The script will:
 - ✅ Fetch movies and TV shows from TMDB `/discover` endpoints
 - ✅ Filter by origin country for Spanish content (`with_origin_country=ES`)
 - ✅ Include backdrop URLs (for hint phase) and poster URLs (for reveal phase)
-- ✅ Generate `src/data/movies/english.js` or `spanish.js`
+- ✅ Generate `src/data/movies/english.json` or `spanish.json`
 - ✅ Include title, year, backdrop, poster, TMDB ID, and type (movie/tvshow)
 
 ### Checking for Duplicates
@@ -214,19 +214,19 @@ The script will:
 - ✅ Search for official YouTube video IDs (ensures best/canonical versions)
 - ✅ Get YouTube IDs, Deezer IDs, album covers, and years
 - ✅ Remove duplicates automatically
-- ✅ Append formatted songs to `src/data/songs/english.js` or `spanish.js`
+- ✅ Append formatted songs to `src/data/songs/english.json` or `spanish.json`
 
 **Note:** When using `--limit 50`, the script keeps processing songs until 50 are successfully imported (skipping any that fail).
 
 ### Adding Individual Songs
 
-To add songs manually, edit `src/data/songs/english.js` or `spanish.js` and add entries **without any IDs**:
+To add songs manually, edit `src/data/songs/english.json` or `spanish.json` and add entries **without any IDs**:
 
-```javascript
+```json
 {
-  title: "Your Song Title",
-  artist: "Artist Name",
-  year: 2024
+  "title": "Your Song Title",
+  "artist": "Artist Name",
+  "year": 2024
 }
 ```
 
@@ -245,24 +245,25 @@ The script will automatically:
 
 You can also add songs with IDs directly:
 
-```javascript
+```json
 {
-  title: "Your Song Title",
-  artist: "Artist Name",
-  year: 2024,
-  youtubeId: "youtube_video_id",  // Required
-  deezerId: "deezer_track_id"     // Required
-  // Note: Do NOT add albumCover or previewUrl - these are fetched at runtime
+  "title": "Your Song Title",
+  "artist": "Artist Name",
+  "year": 2024,
+  "youtubeId": "youtube_video_id",
+  "deezerId": "deezer_track_id"
 }
 ```
 
+**Note:** Do NOT add `albumCover` or `previewUrl` - these are fetched at runtime.
+
 For movies/TV shows:
 
-```javascript
+```json
 {
-  title: "Movie Title",
-  year: 2024,
-  backdropUrl: "https://image.tmdb.org/t/p/original/...",  // Scene image for hints
+  "title": "Movie Title",
+  "year": 2024,
+  "backdropUrl": "https://image.tmdb.org/t/p/original/...",
   posterUrl: "https://image.tmdb.org/t/p/original/...",    // Poster for reveal
   tmdbId: "12345",
   type: "movie"  // or "tvshow"
@@ -283,14 +284,13 @@ src/
 │   ├── ImageHint.jsx            # Image display for movies/shows
 │   └── PlacementButtons.jsx     # Placement controls
 ├── data/
-│   ├── songs.js                 # Song sets export
+│   ├── media.js                 # Unified song/movie sets export
 │   ├── songs/
-│   │   ├── english.js           # 278 English songs
-│   │   └── spanish.js           # 158 Spanish songs
-│   ├── movies.js                # Movie sets export
+│   │   ├── english.json         # 276 English songs
+│   │   └── spanish.json         # 227 Spanish songs
 │   └── movies/
-│       ├── english.js           # 100 English movies/shows
-│       └── spanish.js           # 100 Spanish movies/shows
+│       ├── english.json         # 100 English movies/shows
+│       └── spanish.json         # 100 Spanish movies/shows
 ├── utils/
 │   └── deezer.js                # Deezer API with CORS proxy fallback
 ├── services/

@@ -14,7 +14,7 @@ Usage:
     python3 scripts/check-duplicates.py --fix  # Auto-update files with correct IDs
 """
 
-import re
+import json
 import sys
 import time
 from collections import defaultdict
@@ -26,33 +26,22 @@ from common import fetch_youtube_id, fetch_deezer_id
 
 
 def load_songs_from_file(filename):
-    """Load all songs from a data file"""
+    """Load all songs from a JSON file"""
     try:
         with open(filename, 'r', encoding='utf-8') as f:
-            content = f.read()
+            songs = json.load(f)
         
-        # Extract all song objects using regex
-        # Match pattern: { title: "...", artist: "...", year: ..., youtubeId: "...", deezerId: "..." }
-        song_pattern = r'\{\s*title:\s*"([^"]+)",\s*artist:\s*"([^"]+)",\s*year:\s*(\d+),\s*youtubeId:\s*"([^"]+)",\s*deezerId:\s*"([^"]+)"'
-        
-        matches = re.findall(song_pattern, content)
-        
-        songs = []
-        for match in matches:
-            title, artist, year, youtube_id, deezer_id = match
-            songs.append({
-                'title': title,
-                'artist': artist,
-                'year': year,
-                'youtubeId': youtube_id,
-                'deezerId': deezer_id,
-                'file': filename
-            })
+        # Add filename to each song for tracking
+        for song in songs:
+            song['file'] = filename
         
         return songs
         
     except FileNotFoundError:
         print(f"❌ File not found: {filename}")
+        return []
+    except json.JSONDecodeError as e:
+        print(f"❌ Invalid JSON in {filename}: {e}")
         return []
 
 
@@ -186,51 +175,34 @@ def apply_fixes(fixes):
         print(f"📝 Updating {filename}...")
         
         try:
+            # Load JSON file
             with open(filename, 'r', encoding='utf-8') as f:
-                content = f.read()
+                songs = json.load(f)
             
-            for song, new_id, id_type in file_fixes:
-                # Get old ID based on type
-                old_id = song['youtubeId'] if id_type == 'youtube' else song['deezerId']
+            # Apply fixes
+            for fix_song, new_id, id_type in file_fixes:
                 field_name = 'youtubeId' if id_type == 'youtube' else 'deezerId'
+                old_id = fix_song[field_name]
                 
-                # Create pattern to find this specific song and replace the ID
-                title_escaped = re.escape(song['title'])
-                artist_escaped = re.escape(song['artist'])
-                old_id_escaped = re.escape(old_id)
+                # Find the song in the list and update it
+                updated = False
+                for song in songs:
+                    # Match by title, artist, and year
+                    if (song['title'] == fix_song['title'] and 
+                        song['artist'] == fix_song['artist'] and 
+                        song['year'] == fix_song['year']):
+                        song[field_name] = new_id
+                        print(f"   ✅ '{song['title']}' ({field_name}): {old_id} → {new_id}")
+                        updated = True
+                        break
                 
-                # Build pattern based on whether we're replacing youtube or deezer
-                # Format: { title: "...", artist: "...", year: ..., youtubeId: "...", deezerId: "..." }
-                if id_type == 'youtube':
-                    # Match: title, artist, year, then youtubeId field
-                    pattern = (
-                        f'(\\{{\\s*title:\\s*"{title_escaped}",\\s*'
-                        f'artist:\\s*"{artist_escaped}",\\s*'
-                        f'year:\\s*{song["year"]},\\s*'
-                        f'youtubeId:\\s*")({old_id_escaped})(")'
-                    )
-                else:  # deezer
-                    # Match: title, artist, year, youtubeId, then deezerId field
-                    pattern = (
-                        f'(\\{{\\s*title:\\s*"{title_escaped}",\\s*'
-                        f'artist:\\s*"{artist_escaped}",\\s*'
-                        f'year:\\s*{song["year"]},\\s*'
-                        f'youtubeId:\\s*"[^"]+",\\s*'
-                        f'deezerId:\\s*")({old_id_escaped})(")'
-                    )
-                
-                # Replace old ID with new ID
-                new_content = re.sub(pattern, r'\g<1>' + new_id + r'\g<3>', content)
-                
-                if new_content != content:
-                    content = new_content
-                    print(f"   ✅ '{song['title']}' ({field_name}): {old_id} → {new_id}")
-                else:
-                    print(f"   ⚠️  Could not find pattern for '{song['title']}'")
+                if not updated:
+                    print(f"   ⚠️  Could not find '{fix_song['title']}' in {filename}")
             
-            # Write back
+            # Write back (sorted by year)
+            songs.sort(key=lambda x: x.get('year', 0))
             with open(filename, 'w', encoding='utf-8') as f:
-                f.write(content)
+                json.dump(songs, f, indent=2, ensure_ascii=False)
             
             print()
             
@@ -248,8 +220,8 @@ def main():
     print()
     
     # Load songs from both files
-    english_songs = load_songs_from_file('src/data/english.js')
-    spanish_songs = load_songs_from_file('src/data/spanish.js')
+    english_songs = load_songs_from_file('src/data/songs/english.json')
+    spanish_songs = load_songs_from_file('src/data/songs/spanish.json')
     
     print(f"📊 Loaded {len(english_songs)} English songs")
     print(f"📊 Loaded {len(spanish_songs)} Spanish songs")

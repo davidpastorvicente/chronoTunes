@@ -9,6 +9,7 @@ Usage:
 
 import re
 import requests
+import json
 import time
 import unicodedata
 
@@ -17,30 +18,21 @@ def load_songs_from_file(filename):
     """Load all songs from a data file"""
     try:
         with open(filename, 'r', encoding='utf-8') as f:
-            content = f.read()
+            songs = json.load(f)
         
-        # Extract all song objects
-        song_pattern = r'\{\s*title:\s*"([^"]+)",\s*artist:\s*"([^"]+)",\s*year:\s*(\d+),\s*youtubeId:\s*"([^"]+)",\s*deezerId:\s*"([^"]+)"'
-        
-        matches = re.findall(song_pattern, content)
-        
-        songs = []
-        for match in matches:
-            title, artist, year, youtube_id, deezer_id = match
-            songs.append({
-                'title': title,
-                'artist': artist,
-                'year': year,
-                'youtubeId': youtube_id,
-                'deezerId': deezer_id,
-                'file': filename
-            })
+        # Add filename to each song for tracking
+        for song in songs:
+            song['file'] = filename
         
         return songs
         
     except FileNotFoundError:
         print(f"❌ File not found: {filename}")
         return []
+    except json.JSONDecodeError as e:
+        print(f"❌ Error parsing {filename}: {e}")
+        return []
+
 
 
 def normalize_title(title):
@@ -90,8 +82,8 @@ def check_song_titles():
     print("🔍 CHRONOTUNES TITLE VALIDATOR\n")
     
     # Load songs from both files
-    english_songs = load_songs_from_file('src/data/english.js')
-    spanish_songs = load_songs_from_file('src/data/spanish.js')
+    english_songs = load_songs_from_file('src/data/songs/english.json')
+    spanish_songs = load_songs_from_file('src/data/songs/spanish.json')
     
     all_songs = english_songs + spanish_songs
     

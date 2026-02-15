@@ -12,7 +12,7 @@ End-to-end script that:
 7. Optionally processes until N songs are successfully imported
 8. Removes duplicates (checks against existing songs)
 9. Formats songs correctly
-10. Appends to src/data/english.js or src/data/spanish.js
+10. Appends to src/data/songs/english.json or src/data/songs/spanish.json
 
 Usage:
     python3 scripts/add-playlist.py PLAYLIST_ID [--language en|es] [--limit N]
@@ -43,6 +43,7 @@ Note: YouTube IDs are searched via ytmusicapi (not taken from playlist directly)
 import re
 import sys
 import time
+import json
 
 from ytmusicapi import YTMusic
 
@@ -163,22 +164,25 @@ def process_tracks(tracks, limit=None):
     return processed_songs, failed
 
 def load_existing_songs(language='en'):
-    """Load existing songs from english.js or spanish.js"""
-    filename = 'src/data/english.js' if language == 'en' else 'src/data/spanish.js'
+    """Load existing songs from english.json or spanish.json"""
+
+    # Map language codes
+    filename = f"src/data/songs/{'english' if language == 'en' else 'spanish'}.json"
     
     try:
         with open(filename, 'r', encoding='utf-8') as f:
-            content = f.read()
+            songs = json.load(f)
         
-        # Extract existing song titles and convert to lowercase for case-insensitive comparison
-        pattern = r'title:\s*"([^"]+)"'
-        titles_raw = re.findall(pattern, content)
-        titles = set(title.lower() for title in titles_raw)
+        # Extract existing song titles (lowercase for case-insensitive comparison)
+        titles = set(song['title'].lower() for song in songs)
         
-        return titles, content, filename
+        return titles, songs, filename
         
     except FileNotFoundError:
         print(f"❌ File not found: {filename}")
+        sys.exit(1)
+    except json.JSONDecodeError as e:
+        print(f"❌ Invalid JSON in {filename}: {e}")
         sys.exit(1)
 
 def filter_duplicates(songs, existing_titles):
@@ -199,35 +203,22 @@ def filter_duplicates(songs, existing_titles):
     
     return unique_songs, duplicates
 
-def format_song_line(song):
-    """Format a song as a JavaScript object line"""
-    title = song['title'].replace('"', '\\"')
-    artist = song['artist'].replace('"', '\\"')
-    
-    return f'  {{ title: "{title}", artist: "{artist}", year: {song["year"]}, youtubeId: "{song["youtubeId"]}", deezerId: "{song["deezerId"]}" }},'
-
-def append_songs_to_file(songs, content, filename):
-    """Append songs to the data file"""
-    # Format songs
-    lines = [format_song_line(song) for song in songs]
-    
-    # Find the closing bracket and insert before it
-    if content.strip().endswith('];'):
-        # Remove the closing
-        content = content.rstrip()
-        if content.endswith('];'):
-            content = content[:-2]  # Remove "];
+def append_songs_to_file(new_songs, existing_songs, filename):
+    """Append songs to the JSON file and sort by year"""
+    try:
+        # Combine existing and new songs
+        all_songs = existing_songs + new_songs
         
-        # Add new songs
-        new_content = content + '\n' + '\n'.join(lines) + '\n];\n'
+        # Sort by year (ascending)
+        all_songs.sort(key=lambda x: x['year'])
         
-        # Write back
+        # Write back to file
         with open(filename, 'w', encoding='utf-8') as f:
-            f.write(new_content)
+            json.dump(all_songs, f, indent=2, ensure_ascii=False)
         
         return True
-    else:
-        print(f"❌ Could not find proper ending in {filename}")
+    except (IOError, OSError) as e:
+        print(f"❌ Error writing to file: {e}")
         return False
 
 def print_summary(total_tracks, processed, failed, unique, duplicates, language):
@@ -256,11 +247,10 @@ def print_summary(total_tracks, processed, failed, unique, duplicates, language)
             print(f"   ... and {len(failed) - 10} more")
     
     # Count songs in file
-    filename = 'src/data/english.js' if language == 'en' else 'src/data/spanish.js'
-    with open(filename, 'r') as f:
-        content = f.read()
-    pattern = r'\{\s*title:'
-    total_in_file = len(re.findall(pattern, content))
+    filename = 'src/data/songs/english.json' if language == 'en' else 'src/data/songs/spanish.json'
+    with open(filename, 'r', encoding='utf-8') as f:
+        songs_data = json.load(f)
+    total_in_file = len(songs_data)
     
     print(f"\n📈 Total songs in {filename}: {total_in_file}")
 
@@ -318,7 +308,7 @@ def main():
     
     # Step 3: Load existing songs
     print("\n📂 Loading existing songs...")
-    existing_titles, content, filename = load_existing_songs(language)
+    existing_titles, existing_songs, filename = load_existing_songs(language)
     print(f"   Found {len(existing_titles)} existing songs")
     
     # Step 4: Filter duplicates
@@ -334,7 +324,7 @@ def main():
     
     # Step 5: Append to file
     print(f"\n📝 Adding {len(unique_songs)} songs to {filename}...")
-    success = append_songs_to_file(unique_songs, content, filename)
+    success = append_songs_to_file(unique_songs, existing_songs, filename)
     
     if success:
         print(f"✅ Successfully added songs to {filename}")
