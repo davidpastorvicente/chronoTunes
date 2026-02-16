@@ -23,6 +23,12 @@ function CategorySelector({ category, setCategory, t }) {
           🎬 {t.categoryMovies}
         </button>
         <button
+          className={category === 'shows' ? 'active' : ''}
+          onClick={() => setCategory('shows')}
+        >
+          📺 {t.categoryShows}
+        </button>
+        <button
           className={category === 'all' ? 'active' : ''}
           onClick={() => setCategory('all')}
         >

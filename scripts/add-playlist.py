@@ -11,8 +11,8 @@ End-to-end script that:
 6. Gets Deezer IDs, album covers, and years using cleaned YouTube metadata
 7. Optionally processes until N songs are successfully imported
 8. Removes duplicates (checks against existing songs)
-9. Formats songs correctly
-10. Appends to src/data/songs/english.json or src/data/songs/spanish.json
+9. Formats songs correctly (including type and language fields)
+10. Appends to src/data/songs.json (sorted by year)
 
 Usage:
     python3 scripts/add-playlist.py PLAYLIST_ID [--language en|es] [--limit N]
@@ -148,7 +148,9 @@ def process_tracks(tracks, limit=None):
             'artist': youtube_artist,  # Use YouTube's canonical artist
             'year': deezer_data['year'],
             'youtubeId': video_id,
-            'deezerId': deezer_data['deezerId']
+            'deezerId': deezer_data['deezerId'],
+            'type': 'song',
+            'language': language
         }
         
         processed_songs.append(song)
@@ -164,19 +166,21 @@ def process_tracks(tracks, limit=None):
     return processed_songs, failed
 
 def load_existing_songs(language='en'):
-    """Load existing songs from english.json or spanish.json"""
+    """Load existing songs from songs.json and filter by language"""
 
-    # Map language codes
-    filename = f"src/data/songs/{'english' if language == 'en' else 'spanish'}.json"
+    filename = "src/data/songs.json"
     
     try:
         with open(filename, 'r', encoding='utf-8') as f:
-            songs = json.load(f)
+            all_songs = json.load(f)
+        
+        # Filter songs by language
+        songs = [s for s in all_songs if s.get('language') == language]
         
         # Extract existing song titles (lowercase for case-insensitive comparison)
         titles = set(song['title'].lower() for song in songs)
         
-        return titles, songs, filename
+        return titles, all_songs, filename
         
     except FileNotFoundError:
         print(f"❌ File not found: {filename}")
@@ -247,12 +251,14 @@ def print_summary(total_tracks, processed, failed, unique, duplicates, language)
             print(f"   ... and {len(failed) - 10} more")
     
     # Count songs in file
-    filename = 'src/data/songs/english.json' if language == 'en' else 'src/data/songs/spanish.json'
+    filename = 'src/data/songs.json'
     with open(filename, 'r', encoding='utf-8') as f:
         songs_data = json.load(f)
-    total_in_file = len(songs_data)
     
-    print(f"\n📈 Total songs in {filename}: {total_in_file}")
+    # Filter by language
+    total_in_file = len([s for s in songs_data if s.get('language') == language])
+    
+    print(f"\n📈 Total {language} songs in {filename}: {total_in_file}")
 
 def main():
     if len(sys.argv) < 2:

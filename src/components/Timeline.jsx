@@ -111,11 +111,11 @@ export default function Timeline({ timeline = [], language, playerId = 0, catego
               // Show icon only in "all" category to indicate media type
               let icon = '';
               if (category === 'all') {
-                if (item.artist) {
+                if (item.type === 'song') {
                   icon = '🎵'; // Song
                 } else if (item.type === 'movie') {
                   icon = '🎬'; // Movie
-                } else if (item.type === 'tvshow') {
+                } else if (item.type === 'show') {
                   icon = '📺'; // TV Show
                 }
               }
@@ -131,12 +131,12 @@ export default function Timeline({ timeline = [], language, playerId = 0, catego
                   {icon && <div className="item-type-icon">{icon}</div>}
                   <div className="item-info">
                     <div className="item-title">{item.title}</div>
-                    {item.artist && (
+                    {item.type === 'song' && (
                       <div className="item-subtitle">{item.artist}</div>
                     )}
-                    {item.type && (
+                    {item.type !== 'song' && (
                       <div className="item-subtitle">
-                        {item.type === 'movie' ? t.movie : t.tvShow}
+                        {item.type === 'movie' ? t.movie : t.show}
                       </div>
                     )}
                     <div className="item-year">{item.year}</div>

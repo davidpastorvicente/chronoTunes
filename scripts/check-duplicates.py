@@ -220,8 +220,9 @@ def main():
     print()
     
     # Load songs from both files
-    english_songs = load_songs_from_file('src/data/songs/english.json')
-    spanish_songs = load_songs_from_file('src/data/songs/spanish.json')
+    all_songs = load_songs_from_file('src/data/songs.json')
+    english_songs = [s for s in all_songs if s.get('language') == 'en']
+    spanish_songs = [s for s in all_songs if s.get('language') == 'es']
     
     print(f"📊 Loaded {len(english_songs)} English songs")
     print(f"📊 Loaded {len(spanish_songs)} Spanish songs")

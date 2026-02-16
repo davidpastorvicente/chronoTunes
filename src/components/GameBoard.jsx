@@ -55,7 +55,7 @@ export default function GameBoard({ gameConfig, language, overrideState }) {
     // For "all" category, we need to check each item individually
     // For specific categories, use the category-specific ID field
     const getItemId = (item) => {
-      return item.artist ? item.youtubeId : item.tmdbId;
+      return item.type === 'song' ? item.youtubeId : item.tmdbId;
     };
 
     const availableToPlay = media.filter(item => !usedIds.includes(getItemId(item)));
@@ -71,7 +71,7 @@ export default function GameBoard({ gameConfig, language, overrideState }) {
     let enrichedItem = { ...item };
 
     // For songs, fetch Deezer preview URL at runtime (they expire after ~24h)
-    if (item.artist) {
+    if (item.type === 'song') {
       const { previewUrl, albumCover } = await fetchDeezerPreview(item);
       enrichedItem = { ...item, previewUrl, albumCover };
     }
@@ -239,12 +239,12 @@ export default function GameBoard({ gameConfig, language, overrideState }) {
                     <div className="result-content">
                       <div className="item-details">
                         <div className="item-title">{currentItem.title}</div>
-                        {currentItem.artist && (
+                        {currentItem.type === 'song' && (
                           <div className="item-subtitle">{currentItem.artist}</div>
                         )}
-                        {currentItem.type && (
+                        {currentItem.type !== 'song' && (
                           <div className="item-subtitle">
-                            {currentItem.type === 'movie' ? t.movie : t.tvShow}
+                            {currentItem.type === 'movie' ? t.movie : t.show}
                           </div>
                         )}
                         <div className="item-year">{currentItem.year}</div>

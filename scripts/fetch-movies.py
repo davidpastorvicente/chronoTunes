@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
 """
-Fetch movies and TV shows from TMDB API using discover endpoints.
-Creates movie/show database with title, year, and backdrop image URLs.
+Fetch movies or TV shows from TMDB API using discover endpoints.
+Creates media database with title, year, and backdrop image URLs.
 Uses discover endpoints with certification_country, watch_region, and original_language filters.
-Organized like songs: separate english.json and spanish.json files in src/data/movies/
+Outputs to separate files: src/data/movies/movies.json or src/data/shows/shows.json with language field.
+
+Usage:
+    python3 scripts/fetch-movies.py movies [--count 250]
+    python3 scripts/fetch-movies.py shows [--count 250]
 """
 import os
+import sys
+import argparse
 
 import requests
 import json
@@ -75,7 +81,7 @@ def fetch_discover_tv_shows(language="en-US", page=1, certification_country=None
         print(f"Error fetching discover TV shows: {e}", file=sys.stderr)
         return []
 
-def process_movie(movie_data):
+def process_movie(movie_data, language='en'):
     """Convert TMDB movie data to our format."""
     # Extract year from release_date
     release_date = movie_data.get("release_date", "")
@@ -90,10 +96,11 @@ def process_movie(movie_data):
         "backdropUrl": f"{IMAGE_BASE_URL}{movie_data['backdrop_path']}",
         "posterUrl": f"{IMAGE_BASE_URL}{movie_data['poster_path']}",
         "tmdbId": str(movie_data["id"]),
-        "type": "movie"
+        "type": "movie",
+        "language": language
     }
 
-def process_tv_show(tv_data):
+def process_tv_show(tv_data, language='en'):
     """Convert TMDB TV show data to our format."""
     # Extract year from first_air_date
     first_air_date = tv_data.get("first_air_date", "")
@@ -108,7 +115,8 @@ def process_tv_show(tv_data):
         "backdropUrl": f"{IMAGE_BASE_URL}{tv_data['backdrop_path']}",
         "posterUrl": f"{IMAGE_BASE_URL}{tv_data['poster_path']}",
         "tmdbId": str(tv_data["id"]),
-        "type": "tvshow"
+        "type": "show",
+        "language": language
     }
 
 def fetch_media_by_language(target_language, target_count=100):
@@ -158,7 +166,7 @@ def fetch_media_by_language(target_language, target_count=100):
         )
         for movie in movies:
             if movie["id"] not in seen_ids:
-                processed = process_movie(movie)
+                processed = process_movie(movie, target_language)
                 if processed and len(all_media) < classic_target:
                     all_media.append(processed)
                     seen_ids.add(movie["id"])
@@ -174,7 +182,7 @@ def fetch_media_by_language(target_language, target_count=100):
         )
         for show in tv_shows:
             if show["id"] not in seen_ids:
-                processed = process_tv_show(show)
+                processed = process_tv_show(show, target_language)
                 if processed and len(all_media) < classic_target:
                     all_media.append(processed)
                     seen_ids.add(show["id"])
@@ -202,7 +210,7 @@ def fetch_media_by_language(target_language, target_count=100):
         )
         for movie in movies:
             if movie["id"] not in seen_ids:
-                processed = process_movie(movie)
+                processed = process_movie(movie, target_language)
                 if processed and len(all_media) < older_target:
                     all_media.append(processed)
                     seen_ids.add(movie["id"])
@@ -219,7 +227,7 @@ def fetch_media_by_language(target_language, target_count=100):
         )
         for show in tv_shows:
             if show["id"] not in seen_ids:
-                processed = process_tv_show(show)
+                processed = process_tv_show(show, target_language)
                 if processed and len(all_media) < older_target:
                     all_media.append(processed)
                     seen_ids.add(show["id"])
@@ -247,7 +255,7 @@ def fetch_media_by_language(target_language, target_count=100):
         )
         for movie in movies:
             if movie["id"] not in seen_ids:
-                processed = process_movie(movie)
+                processed = process_movie(movie, target_language)
                 if processed and len(all_media) < target_count:
                     all_media.append(processed)
                     seen_ids.add(movie["id"])
@@ -263,7 +271,7 @@ def fetch_media_by_language(target_language, target_count=100):
         )
         for show in tv_shows:
             if show["id"] not in seen_ids:
-                processed = process_tv_show(show)
+                processed = process_tv_show(show, target_language)
                 if processed and len(all_media) < target_count:
                     all_media.append(processed)
                     seen_ids.add(show["id"])
@@ -281,51 +289,68 @@ def fetch_media_by_language(target_language, target_count=100):
     return all_media[:target_count]
 
 def main():
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(
+        description='Fetch movies or TV shows from TMDB API'
+    )
+    parser.add_argument(
+        'media_type',
+        choices=['movies', 'shows'],
+        help='Type of media to fetch (movies or shows)'
+    )
+    parser.add_argument(
+        '--count',
+        type=int,
+        default=250,
+        help='Total number of items to fetch per language (default: 250)'
+    )
+    args = parser.parse_args()
+    
     if not TMDB_API_KEY:
-        print("Error: Please set your TMDB API key in the script")
+        print("Error: Please set TMDB_API_KEY environment variable")
         print("Get one for free at: https://www.themoviedb.org/settings/api")
         sys.exit(1)
     
-    # Fetch English media (original_language = 'en')
-    english_media = fetch_media_by_language("en", target_count=250)
-    print(f"✓ Fetched {len(english_media)} English movies/shows\n")
+    media_type = args.media_type
+    target_count = args.count
     
-    # Fetch Spanish media (original_language = 'es')
-    spanish_media = fetch_media_by_language("es", target_count=250)
-    print(f"✓ Fetched {len(spanish_media)} Spanish movies/shows\n")
+    # Fetch English media
+    english_media = fetch_media_by_language("en", media_type, target_count=target_count)
+    print(f"\n✓ Fetched {len(english_media)} English {media_type}\n")
     
-    # Remove original_language field before saving (not needed in final data)
-    for item in english_media + spanish_media:
-        item.pop("original_language", None)
+    # Fetch Spanish media
+    spanish_media = fetch_media_by_language("es", media_type, target_count=target_count)
+    print(f"\n✓ Fetched {len(spanish_media)} Spanish {media_type}\n")
+    
+    # Combine all media
+    all_media = english_media + spanish_media
     
     # Create output directory
-    output_dir = Path(__file__).parent.parent / "src" / "data" / "movies"
+    output_dir = Path(__file__).parent.parent / "src" / "data"
     output_dir.mkdir(parents=True, exist_ok=True)
     
     # Sort by year
-    english_media.sort(key=lambda x: x['year'])
-    spanish_media.sort(key=lambda x: x['year'])
+    all_media.sort(key=lambda x: x['year'])
     
-    # Write english.json
-    english_path = output_dir / "english.json"
-    with open(english_path, "w", encoding="utf-8") as f:
-        json.dump(english_media, f, indent=2, ensure_ascii=False)
-    print(f"✓ Created {english_path}")
+    # Write to file
+    output_path = output_dir / f"{media_type}.json"
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(all_media, f, indent=2, ensure_ascii=False)
+    print(f"✓ Created {output_path}")
     
-    # Write spanish.json
-    spanish_path = output_dir / "spanish.json"
-    with open(spanish_path, "w", encoding="utf-8") as f:
-        json.dump(spanish_media, f, indent=2, ensure_ascii=False)
-    print(f"✓ Created {spanish_path}")
-    
-    # Count recent items
-    recent_count = len([m for m in english_media + spanish_media if m['year'] >= 2020])
+    # Count by era
+    recent_count = len([m for m in all_media if m['year'] >= 2020])
+    classic_count = len([m for m in all_media if m['year'] < 1990])
+    count_1990_2020 = len([m for m in all_media if 1990 <= m['year'] < 2020])
     
     print(f"\nSummary:")
-    print(f"  Total: {len(english_media) + len(spanish_media)} movies/shows")
+    print(f"  Total: {len(all_media)} {media_type}")
     print(f"  English (ES region, original_language='en'): {len(english_media)}")
     print(f"  Spanish (ES region, original_language='es'): {len(spanish_media)}")
-    print(f"  Recent (2020+): {recent_count}")
+    print(f"\n  By era:")
+    print(f"    Before 1990: {classic_count} items ({classic_count/len(all_media)*100:.1f}%)")
+    print(f"    1990-2020: {count_1990_2020} items ({count_1990_2020/len(all_media)*100:.1f}%)")
+    print(f"    2020+: {recent_count} items ({recent_count/len(all_media)*100:.1f}%)")
 
 
 

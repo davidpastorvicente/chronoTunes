@@ -82,8 +82,9 @@ def check_song_titles():
     print("🔍 CHRONOTUNES TITLE VALIDATOR\n")
     
     # Load songs from both files
-    english_songs = load_songs_from_file('src/data/songs/english.json')
-    spanish_songs = load_songs_from_file('src/data/songs/spanish.json')
+    all_songs_data = load_songs_from_file('src/data/songs.json')
+    english_songs = [s for s in all_songs_data if s.get('language') == 'en']
+    spanish_songs = [s for s in all_songs_data if s.get('language') == 'es']
     
     all_songs = english_songs + spanish_songs
     

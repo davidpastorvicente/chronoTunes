@@ -12,7 +12,8 @@ export const translations = {
     setupSubtitle: "Build timelines by placing items in chronological order!",
     categoryLabel: "Category",
     categorySongs: "Songs",
-    categoryMovies: "Movies/Shows",
+    categoryMovies: "Movies",
+    categoryShows: "TV Shows",
     categoryAll: "Mixed",
     playersNumber: "Number of players",
     playerNames: "Player names",
@@ -52,7 +53,7 @@ export const translations = {
     timeline: "Timeline",
     score: "Score",
     movie: "Movie",
-    tvShow: "TV Show",
+    show: "TV Show",
     
     // Song Player
     loading: "Loading...",
@@ -94,7 +95,8 @@ export const translations = {
     setupSubtitle: "¡Construye cronologías colocando elementos en orden cronológico!",
     categoryLabel: "Categoría",
     categorySongs: "Canciones",
-    categoryMovies: "Películas/Series",
+    categoryMovies: "Películas",
+    categoryShows: "Series",
     categoryAll: "Mix",
     playersNumber: "Número de jugadores",
     playerNames: "Nombres de los jugadores",
@@ -134,7 +136,7 @@ export const translations = {
     timeline: "Cronología",
     score: "Puntuación",
     movie: "Película",
-    tvShow: "Serie",
+    show: "Serie",
     
     // Song Player
     loading: "Cargando...",

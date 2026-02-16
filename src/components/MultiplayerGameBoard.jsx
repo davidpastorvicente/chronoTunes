@@ -25,7 +25,7 @@ export default function MultiplayerGameBoard({ gameConfig, language, onTurnIndic
     const item = selectedMedia[randomIndex];
 
     let firstItem;
-    if (item.artist) {
+    if (item.type === 'song') {
       // Fetch Deezer preview URL at runtime (they expire after ~24h)
       const { previewUrl, albumCover } = await fetchDeezerPreview(item);
       firstItem = { ...item, previewUrl, albumCover };
@@ -33,7 +33,7 @@ export default function MultiplayerGameBoard({ gameConfig, language, onTurnIndic
       firstItem = item;
     }
 
-    const idField = item.artist ? 'youtubeId' : 'tmdbId';
+    const idField = item.type === 'song' ? 'youtubeId' : 'tmdbId';
     
     // Initialize game state in Firebase
     await updateGameState(gameCode, {
@@ -180,7 +180,7 @@ export default function MultiplayerGameBoard({ gameConfig, language, onTurnIndic
     await new Promise(resolve => setTimeout(resolve, 100));
     
     // Detect item type for mixed category
-    const idField = nextItem.artist ? 'youtubeId' : 'tmdbId';
+    const idField = nextItem.type === 'song' ? 'youtubeId' : 'tmdbId';
     
     await updateGameState(gameCode, {
       currentPlayerIndex: nextPlayerIndex,
@@ -234,7 +234,7 @@ function MultiplayerGameBoardActive({ gameConfig, gameData, language, onPlaceIte
     const selectedMedia = loadMediaByCategory(category, contentSet);
     
     // Filter based on item type (auto-detect for 'all' category)
-    const getItemId = (item) => item.artist ? item.youtubeId : item.tmdbId;
+    const getItemId = (item) => item.type === 'song' ? item.youtubeId : item.tmdbId;
     const availableToPlay = selectedMedia.filter(item => 
       !gameData.state.usedItemIds.includes(getItemId(item))
     );
@@ -248,7 +248,7 @@ function MultiplayerGameBoardActive({ gameConfig, gameData, language, onPlaceIte
     const item = availableToPlay[randomIndex];
 
     let nextItem;
-    if (item.artist) {
+    if (item.type === 'song') {
       // Fetch Deezer preview URL at runtime (they expire after ~24h)
       const { previewUrl, albumCover } = await fetchDeezerPreview(item);
       nextItem = { ...item, previewUrl, albumCover };

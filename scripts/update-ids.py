@@ -62,10 +62,7 @@ def main():
     force_mode = '--force' in sys.argv
     
     youtube_failed, deezer_failed = False, False
-    filepaths = [
-        'src/data/songs/english.json',
-        'src/data/songs/spanish.json'
-    ]
+    filepath = 'src/data/songs.json'
     
     print("=" * 60)
     print("ID Updater for ChronoTunes Game")
@@ -75,73 +72,72 @@ def main():
     print("=" * 60)
     print()
     
-    for filepath in filepaths:
-        print(f"\n{'='*60}")
-        print(f"Processing: {filepath}")
-        print('='*60)
+    print(f"\n{'='*60}")
+    print(f"Processing: {filepath}")
+    print('='*60)
+    
+    # Extract songs from file
+    print("📖 Reading file...")
+    songs = extract_songs_from_file(filepath)
+    print(f"✓ Found {len(songs)} songs in file\n")
+    
+    # Find songs to process
+    if force_mode:
+        # Force mode: process all songs
+        missing_youtube = songs
+        missing_deezer = songs
+        print("🔄 Force mode: Processing all songs\n")
+    else:
+        # Normal mode: only process songs without IDs
+        missing_youtube = [s for s in songs if not s['youtubeId'] or s['youtubeId'].strip() == '']
+        missing_deezer = [s for s in songs if not s['deezerId'] or s['deezerId'].strip() == '']
         
-        # Extract songs from file
-        print("📖 Reading file...")
-        songs = extract_songs_from_file(filepath)
-        print(f"✓ Found {len(songs)} songs in file\n")
+        if not missing_youtube and not missing_deezer:
+            print("✅ All songs already have YouTube IDs and Deezer IDs!")
+            print("   (Use --force to re-fetch all IDs)\n")
+            return
         
-        # Find songs to process
-        if force_mode:
-            # Force mode: process all songs
-            missing_youtube = songs
-            missing_deezer = songs
-            print("🔄 Force mode: Processing all songs\n")
-        else:
-            # Normal mode: only process songs without IDs
-            missing_youtube = [s for s in songs if not s['youtubeId'] or s['youtubeId'].strip() == '']
-            missing_deezer = [s for s in songs if not s['deezerId'] or s['deezerId'].strip() == '']
+        print(f"🔍 Found {len(missing_youtube)} songs without YouTube IDs")
+        print(f"🔍 Found {len(missing_deezer)} songs without Deezer IDs\n")
+    
+    youtube_updates = {}
+    youtube_failed = []
+    deezer_updates = {}
+    deezer_failed = []
+    
+    # Fetch YouTube IDs
+    if missing_youtube:
+        print("🎵 Initializing YouTube Music API...")
+        ytmusic = YTMusic()
+        print("✓ YouTube API ready\n")
+        
+        mode_msg = "YouTube IDs" if not force_mode else "all YouTube IDs"
+        print(f"🔎 Fetching {mode_msg}...\n")
+        for i, song in enumerate(missing_youtube, 1):
+            current_id = song.get('youtubeId', 'none')
+            print(f"[{i}/{len(missing_youtube)}] {song['title']} - {song['artist']}")
+            if force_mode and current_id and current_id.strip():
+                print(f"    Current: {current_id}")
             
-            if not missing_youtube and not missing_deezer:
-                print("✅ All songs already have YouTube IDs and Deezer IDs!")
-                print("   (Use --force to re-fetch all IDs)\n")
-                continue
+            youtube_id = fetch_youtube_id(ytmusic, song['title'], song['artist'])
             
-            print(f"🔍 Found {len(missing_youtube)} songs without YouTube IDs")
-            print(f"🔍 Found {len(missing_deezer)} songs without Deezer IDs\n")
-        
-        youtube_updates = {}
-        youtube_failed = []
-        deezer_updates = {}
-        deezer_failed = []
-        
-        # Fetch YouTube IDs
-        if missing_youtube:
-            print("🎵 Initializing YouTube Music API...")
-            ytmusic = YTMusic()
-            print("✓ YouTube API ready\n")
-            
-            mode_msg = "YouTube IDs" if not force_mode else "all YouTube IDs"
-            print(f"🔎 Fetching {mode_msg}...\n")
-            for i, song in enumerate(missing_youtube, 1):
-                current_id = song.get('youtubeId', 'none')
-                print(f"[{i}/{len(missing_youtube)}] {song['title']} - {song['artist']}")
-                if force_mode and current_id and current_id.strip():
-                    print(f"    Current: {current_id}")
-                
-                youtube_id = fetch_youtube_id(ytmusic, song['title'], song['artist'])
-                
-                if youtube_id:
-                    youtube_updates[(song['title'], song['artist'])] = youtube_id
-                    if force_mode and current_id and current_id.strip() and youtube_id != current_id:
-                        print(f"  ✓ YouTube: {youtube_id} (replaced)")
-                    else:
-                        print(f"  ✓ YouTube: {youtube_id}")
+            if youtube_id:
+                youtube_updates[(song['title'], song['artist'])] = youtube_id
+                if force_mode and current_id and current_id.strip() and youtube_id != current_id:
+                    print(f"  ✓ YouTube: {youtube_id} (replaced)")
                 else:
-                    youtube_failed.append(song)
-                    print(f"  ✗ YouTube: Not found")
-                
-                # Small delay to avoid rate limiting
-                if i < len(missing_youtube):
-                    time.sleep(0.3)
+                    print(f"  ✓ YouTube: {youtube_id}")
+            else:
+                youtube_failed.append(song)
+                print(f"  ✗ YouTube: Not found")
             
-            print()
+            # Small delay to avoid rate limiting
+            if i < len(missing_youtube):
+                time.sleep(0.3)
         
-        # Fetch Deezer IDs
+        print()
+    
+    # Fetch Deezer IDs
         if missing_deezer:
             mode_msg = "Deezer IDs" if not force_mode else "all Deezer IDs"
             print(f"🎧 Fetching {mode_msg}...\n")

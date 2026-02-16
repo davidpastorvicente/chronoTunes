@@ -8,7 +8,7 @@ A timeline guessing game where players build chronological timelines by placing 
 
 ## 🎮 How to Play
 
-1. **Choose Category**: Select between Songs or Movies/TV Shows
+1. **Choose Category**: Select between Songs, Movies, or TV Shows
 2. **Setup Players**: Choose 2-6 players and set a winning score (5, 10, 15, or 20 items)
 3. **Experience**: Each turn, a player experiences a mystery item (song audio or movie/show image)
 4. **Guess**: Place the item in your timeline by its year (before, between, or after existing items)
@@ -17,26 +17,26 @@ A timeline guessing game where players build chronological timelines by placing 
 
 ## 📚 Content Library
 
-### 🎵 Music (436 Songs Total)
+### 🎵 Music
 
-**English Songs (278 songs):**
+**English Songs:**
 - 1960s-1990s: Classic hits from The Beatles, Queen, Michael Jackson, Nirvana
 - 2000s-2020s: Modern anthems from Beyoncé, Ed Sheeran, The Weeknd, Billie Eilish  
 - 2010s party hits: Rihanna, Lady Gaga, Calvin Harris, Ariana Grande, Justin Bieber
 
-**Spanish/Latin Songs (158 songs):**
+**Spanish/Latin Songs:**
 - Heavy emphasis on reggaeton and Latin pop
 - Artists: Bad Bunny, Karol G, Ozuna, Rauw Alejandro, Maluma, ROSALÍA, Shakira
 - Spanish pop/rock: La Oreja de Van Gogh, Amaral, El Canto del Loco, Mecano, Héroes del Silencio
 - Focus on post-2000 music with 70+ songs from 2020s alone
 
-### 🎬 Movies & TV Shows (200 Items Total)
+### 🎬 Movies & TV Shows
 
-**English Movies/Shows (100 items):**
+**English Movies/Shows:**
 - Classic films and iconic TV series from 1960s-2020s
 - Mix of blockbusters, critically acclaimed films, and popular TV shows
 
-**Spanish Movies/Shows (100 items from Spain):**
+**Spanish Movies/Shows:**
 - Spanish cinema and television from Spain specifically
 - Filtered by origin country to ensure authentic Spanish content
 
@@ -100,7 +100,7 @@ npm run dev
 
 ### Media-Agnostic Architecture
 - Generic terminology: "items" instead of "songs"
-- `category` field: 'songs' or 'movies'
+- `category` field: 'songs', 'movies', 'shows', or 'all'
 - `contentSet` field: 'everything', 'english', 'spanish', or 'new' (2010+)
 - Components work across all media types
 - Easy to extend with new categories in future
@@ -126,29 +126,28 @@ npm run dev
 
 ### Adding Movies/TV Shows from TMDB
 
-Use the automated script to fetch movies and TV shows:
+Use the automated script to fetch movies or TV shows separately:
 
 ```bash
-python3 scripts/fetch-movies.py
+# Fetch movies (250 per language = 500 total)
+python3 scripts/fetch-movies.py movies --count 250
 
-# For Spanish content (from Spain only):
-python3 scripts/fetch-movies.py --language es
-
-# Limit number of items:
-python3 scripts/fetch-movies.py --limit 50
+# Fetch TV shows (250 per language = 500 total)
+python3 scripts/fetch-movies.py shows --count 250
 ```
 
 **Requirements:**
 - TMDB API key (set as `TMDB_API_KEY` environment variable)
 - Both `backdrop_path` AND `poster_path` must be present
-- Spanish content filtered by origin country (Spain only)
+- All content uses ES region with language filtering (original_language=en/es)
 
 The script will:
-- ✅ Fetch movies and TV shows from TMDB `/discover` endpoints
-- ✅ Filter by origin country for Spanish content (`with_origin_country=ES`)
+- ✅ Fetch movies or TV shows from TMDB `/discover` endpoints
+- ✅ Use ES region filters with original language filtering
+- ✅ Apply date distribution: 5% pre-1990, 80% 1990-2020, 15% 2020+
 - ✅ Include backdrop URLs (for hint phase) and poster URLs (for reveal phase)
-- ✅ Generate `src/data/movies/english.json` or `spanish.json`
-- ✅ Include title, year, backdrop, poster, TMDB ID, and type (movie/tvshow)
+- ✅ Generate `src/data/movies.json` or `src/data/shows.json`
+- ✅ Include title, year, backdrop, poster, TMDB ID, type, and language fields
 
 ### Checking for Duplicates
 
@@ -214,19 +213,21 @@ The script will:
 - ✅ Search for official YouTube video IDs (ensures best/canonical versions)
 - ✅ Get YouTube IDs, Deezer IDs, album covers, and years
 - ✅ Remove duplicates automatically
-- ✅ Append formatted songs to `src/data/songs/english.json` or `spanish.json`
+- ✅ Append formatted songs to `src/data/songs.json` (sorted by year)
 
 **Note:** When using `--limit 50`, the script keeps processing songs until 50 are successfully imported (skipping any that fail).
 
 ### Adding Individual Songs
 
-To add songs manually, edit `src/data/songs/english.json` or `spanish.json` and add entries **without any IDs**:
+To add songs manually, edit `src/data/songs.json` and add entries **without any IDs**:
 
 ```json
 {
   "title": "Your Song Title",
   "artist": "Artist Name",
-  "year": 2024
+  "year": 2024,
+  "type": "song",
+  "language": "en"
 }
 ```
 
@@ -251,7 +252,9 @@ You can also add songs with IDs directly:
   "artist": "Artist Name",
   "year": 2024,
   "youtubeId": "youtube_video_id",
-  "deezerId": "deezer_track_id"
+  "deezerId": "deezer_track_id",
+  "type": "song",
+  "language": "en"
 }
 ```
 
@@ -264,11 +267,14 @@ For movies/TV shows:
   "title": "Movie Title",
   "year": 2024,
   "backdropUrl": "https://image.tmdb.org/t/p/original/...",
-  posterUrl: "https://image.tmdb.org/t/p/original/...",    // Poster for reveal
-  tmdbId: "12345",
-  type: "movie"  // or "tvshow"
+  "posterUrl": "https://image.tmdb.org/t/p/original/...",
+  "tmdbId": "12345",
+  "type": "movie",
+  "language": "en"
 }
 ```
+
+For TV shows, use `"type": "show"` instead of `"movie"`.
 
 ## 📦 Project Structure
 
@@ -284,15 +290,12 @@ src/
 │   ├── ImageHint.jsx            # Image display for movies/shows
 │   └── PlacementButtons.jsx     # Placement controls
 ├── data/
-│   ├── media.js                 # Unified song/movie sets export
-│   ├── songs/
-│   │   ├── english.json         # 276 English songs
-│   │   └── spanish.json         # 227 Spanish songs
-│   └── movies/
-│       ├── english.json         # 100 English movies/shows
-│       └── spanish.json         # 100 Spanish movies/shows
+│   ├── songs.json               # All songs (English + Spanish)
+│   ├── movies.json              # All movies (English + Spanish)
+│   └── shows.json               # All TV shows (English + Spanish)
 ├── utils/
-│   └── deezer.js                # Deezer API with CORS proxy fallback
+│   ├── deezer.js                # Deezer API with CORS proxy fallback
+│   └── mediaLoader.js           # Media set creation and filtering
 ├── services/
 │   └── gameSession.js           # Firebase operations
 ├── translations.js              # English/Spanish translations
