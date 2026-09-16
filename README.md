@@ -43,10 +43,10 @@ A timeline guessing game where players build chronological timelines by placing 
 ## 🎧 Media Playback
 
 **For Songs:**
-- **Deezer API**: ~99% of songs play ad-free 30-second previews via Deezer
-- **YouTube Fallback**: Remaining songs use YouTube embed (may show ads)
-- Preview URLs are fetched dynamically at runtime for freshness
-- CORS proxy fallback chain ensures reliability
+- **YouTube via yt-dlp**: Audio is extracted server-side with `yt-dlp` and streamed
+  through a small Express backend (`server/index.js`), then played in a plain
+  `<audio>` element. Streaming through our own server avoids CORS issues.
+- Requires `yt-dlp` on `PATH` and the audio backend running (`npm run server`).
 
 **For Movies/TV Shows:**
 - **Backdrop Images**: Scene stills shown during guessing phase (harder to identify)
@@ -59,29 +59,33 @@ A timeline guessing game where players build chronological timelines by placing 
 # Install dependencies
 npm install
 
-# Start development server
-npm run dev
+# Make sure yt-dlp is installed and on PATH
+#   macOS:   brew install yt-dlp
+#   pip:     pip install -U yt-dlp
+
+# Start the web app + audio backend together
+npm run dev:all
 
 # Open browser to http://localhost:5173
 ```
+
+> `npm run dev` starts only the web app; run `npm run server` alongside it (or use
+> `npm run dev:all`) so songs can play.
 
 ## 🛠 Tech Stack
 
 - **React** - UI framework
 - **Vite** - Build tool & dev server
+- **Express + yt-dlp** - Server-side YouTube audio extraction/streaming
 - **Firebase Realtime Database** - Multi-device sync
-- **Deezer API** - Ad-free audio previews (30 seconds)
 - **TMDB API** - Movie/TV show data and images
-- **YouTube Embeds** - Fallback audio playback
 - **CSS3** - Modern styling with theme system
 
 ## 🎯 Content Sources
 
 ### Songs
-- **Data structure**: Title, artist, year, YouTubeId, DeezerId
-- **Playback**: Deezer preview URLs (fetched at runtime, expire after 24h)
-- **Album covers**: Fetched at runtime from Deezer API
-- **Fallback**: YouTube embeds for songs without Deezer previews
+- **Data structure**: Title, artist, year, youtubeId
+- **Playback**: YouTube audio extracted at runtime with `yt-dlp`
 
 ### Movies/TV Shows
 - **Data structure**: Title, year, backdropUrl, posterUrl, tmdbId, type

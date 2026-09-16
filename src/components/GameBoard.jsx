@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { translations } from '../translations';
-import { fetchDeezerPreview } from '../utils/deezer';
+import { fetchAudioPreview } from '../utils/audio';
 import { loadMediaByCategory } from '../utils/mediaLoader';
 import Timeline from './Timeline';
 import MediaPlayer from './MediaPlayer';
@@ -72,7 +72,7 @@ export default function GameBoard({ gameConfig, language, overrideState }) {
 
     // For songs, fetch Deezer preview URL at runtime (they expire after ~24h)
     if (item.type === 'song') {
-      const { previewUrl, albumCover } = await fetchDeezerPreview(item);
+      const { previewUrl, albumCover } = await fetchAudioPreview(item);
       enrichedItem = { ...item, previewUrl, albumCover };
     }
     // For movies, backdrop URL is already in the data
