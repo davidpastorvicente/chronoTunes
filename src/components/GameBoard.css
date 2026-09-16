@@ -177,11 +177,14 @@
 }
 
 .result-cover {
+  width: 150px;
   height: 150px;
 }
 
 .result-cover img {
+  width: 150px;
   height: 150px;
+  object-fit: cover;
   border-radius: 8px;
   box-shadow: 0 4px 12px var(--shadow);
 }

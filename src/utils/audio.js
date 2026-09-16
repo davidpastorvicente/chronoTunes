@@ -16,12 +16,16 @@ export async function fetchAudioPreview(song) {
   const apiBase = import.meta.env.VITE_AUDIO_API_BASE || '';
 
   let previewUrl = null;
+  let albumCover = song.albumCover || null;
   if (song.youtubeId) {
     previewUrl = `${apiBase}/api/audio?v=${encodeURIComponent(song.youtubeId)}`;
+    // Use the video's YouTube thumbnail as the cover art shown in the result
+    // reveal. mqdefault (320x180) is a clean 16:9 still with no black bars and
+    // always exists for a valid video id.
+    if (!albumCover) {
+      albumCover = `https://i.ytimg.com/vi/${encodeURIComponent(song.youtubeId)}/mqdefault.jpg`;
+    }
   }
-
-  // Album covers previously came from Deezer; not available with YouTube-only playback.
-  const albumCover = song.albumCover || null;
 
   return { previewUrl, albumCover };
 }

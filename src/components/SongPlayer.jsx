@@ -9,12 +9,16 @@ export default function SongPlayer({ song, language }) {
 
   const t = translations[language];
 
-  // Reset the player UI when the song changes. We intentionally do NOT call
-  // audioRef.load() here: with preload="none" the browser only requests
-  // /api/audio (which spawns yt-dlp on the server) once the user hits play.
+  // When the song changes, reset the UI and prefetch the new audio so playback
+  // is (near) instant when the user hits play. Setting preload="auto" plus an
+  // explicit load() tells the browser to start requesting /api/audio (which
+  // spawns yt-dlp on the server) right away, buffering ahead of the click.
   useEffect(() => {
     setIsPlaying(false);
     setIsPaused(false);
+    if (audioRef.current) {
+      audioRef.current.load();
+    }
   }, [song]);
 
   const handlePlayClick = () => {
@@ -38,7 +42,7 @@ export default function SongPlayer({ song, language }) {
 
   return (
     <div className="song-player">
-      <audio ref={audioRef} src={song.previewUrl} preload="none" />
+      <audio ref={audioRef} src={song.previewUrl} preload="auto" />
       {!isPlaying ? (
         <div className="play-button-container">
           <button className="play-button" onClick={handlePlayClick}>

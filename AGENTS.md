@@ -64,8 +64,10 @@ Music is played **exclusively from YouTube**, extracted server-side with `yt-dlp
 
 1. The frontend calls `fetchAudioPreview()` (`src/utils/audio.js`) which returns a
    `previewUrl` of the form `/api/audio?v=<youtubeId>`.
-2. `SongPlayer.jsx` points a plain `<audio preload="none">` element at that URL, so
-   yt-dlp only runs on the server when the user actually presses play.
+2. `SongPlayer.jsx` points an `<audio preload="auto">` element at that URL and
+   calls `load()` when the song changes, so the browser prefetches the stream
+   (spawning yt-dlp on the server) as soon as the turn's song is set, making
+   playback near-instant when the user presses play.
 3. The `/api/audio` handler (`server/audioMiddleware.js`) spawns
    `yt-dlp -f bestaudio[ext=m4a]/bestaudio` and streams the audio through the
    response (`audio/mp4`). Streaming through our own server avoids CORS issues
