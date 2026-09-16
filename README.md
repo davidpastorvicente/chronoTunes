@@ -1,5 +1,3 @@
-[![Deploy to GitHub Pages](https://github.com/davidpastorvicente/chronotunes/actions/workflows/deploy.yml/badge.svg?branch=master)](https://github.com/davidpastorvicente/chronotunes/actions/workflows/deploy.yml)
-
 # ChronoTunes
 
 A timeline guessing game where players build chronological timelines by placing items in order. Play with songs, movies, or TV shows!
@@ -63,14 +61,38 @@ npm install
 #   macOS:   brew install yt-dlp
 #   pip:     pip install -U yt-dlp
 
-# Start the web app + audio backend together
-npm run dev:all
+# Start the app (Vite serves the frontend AND the yt-dlp audio API)
+npm run dev
 
 # Open browser to http://localhost:5173
 ```
 
-> `npm run dev` starts only the web app; run `npm run server` alongside it (or use
-> `npm run dev:all`) so songs can play.
+> A single `npm run dev` process serves both the app and the `/api/audio`
+> endpoint (the yt-dlp streaming runs as Vite middleware in development).
+
+## 🌐 Deployment
+
+The frontend and the yt-dlp audio API deploy **together as one Docker web
+service** (a single origin, no CORS). GitHub Pages can't run yt-dlp, so the app
+is hosted on [Render](https://render.com)'s free tier:
+
+1. Push to GitHub and create a **New → Blueprint** in Render pointing at this
+   repo (it reads `render.yaml`), or a **New → Web Service** using the
+   `Dockerfile`.
+2. Set the `VITE_*` Firebase variables in the service's **Environment** tab.
+3. Render builds the image (`Dockerfile` installs Node, ffmpeg, and yt-dlp),
+   deploys it, and auto-redeploys on every push.
+
+Locally you can build/run the same image:
+
+```bash
+docker build -t chronotunes .
+docker run -p 3001:3001 chronotunes   # http://localhost:3001
+```
+
+> Heads-up: on cloud hosts, YouTube may throttle datacenter IPs. If audio
+> extraction fails in production, yt-dlp may need a cookies file or
+> `--extractor-args`.
 
 ## 🛠 Tech Stack
 

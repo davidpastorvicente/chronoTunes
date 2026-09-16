@@ -61,9 +61,9 @@ VITE_DISABLE_AUTH=false
 
 > The `.env` file is git-ignored and must never be committed.
 
-## Step 5: Add to GitHub Secrets
+## Step 5: Add to your host's environment
 
-For deployment, add each of these as GitHub Secrets:
-- Repository → Settings → Secrets → Actions
-- Add each `VITE_*` variable as a secret
+For deployment (Render), add each `VITE_*` variable in the service's
+**Environment** settings (Dashboard → your service → Environment). They are
+baked into the frontend bundle at build time.
 

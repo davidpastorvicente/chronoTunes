@@ -1,0 +1,16 @@
+node_modules
+dist
+dist-ssr
+.git
+.github
+.idea
+.vscode
+.env
+.env.*
+*.log
+__pycache__
+*.py[cod]
+screenshots
+openspec
+scripts
+*.md

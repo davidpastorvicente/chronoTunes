@@ -19,5 +19,5 @@ function ytdlpAudioPlugin() {
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), ytdlpAudioPlugin()],
-  base: '/chronotunes/',
+  base: '/',
 })

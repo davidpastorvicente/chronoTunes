@@ -15,8 +15,11 @@ app.use(ytdlpAudioMiddleware);
 
 // Serve the built frontend so a single process handles both app and API.
 if (existsSync(distDir)) {
-  app.use('/chronotunes', express.static(distDir));
-  app.get('/', (_req, res) => res.redirect('/chronotunes/'));
+  app.use(express.static(distDir));
+  // SPA fallback: send index.html for any non-API GET route.
+  app.get(/^(?!\/api\/).*/, (_req, res) => {
+    res.sendFile(join(distDir, 'index.html'));
+  });
 } else {
   console.warn('dist/ not found - run `npm run build` first to serve the app from this server.');
 }
@@ -24,7 +27,7 @@ if (existsSync(distDir)) {
 app.listen(PORT, () => {
   console.log(`ChronoTunes server listening on http://localhost:${PORT}`);
   if (existsSync(distDir)) {
-    console.log(`App:   http://localhost:${PORT}/chronotunes/`);
+    console.log(`App:   http://localhost:${PORT}/`);
   }
   console.log(`Audio: http://localhost:${PORT}/api/audio?v=<youtubeId>`);
 });

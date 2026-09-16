@@ -3,14 +3,17 @@
 ## Build, Test, and Lint
 
 ```bash
-# Development
-npm run dev          # Start Vite dev server at http://localhost:5173
-npm run server       # Start the yt-dlp audio backend at http://localhost:3001
-npm run dev:all      # Run web + audio backend together (concurrently)
+# Development (single process: Vite serves the app AND the yt-dlp /api/audio endpoint)
+npm run dev          # http://localhost:5173
 
-# Production
-npm run build        # Build for production (outputs to dist/)
-npm run preview      # Preview production build
+# Production (single Express process: serves built app + /api/audio)
+npm run build        # Build frontend to dist/
+npm run serve        # Build then run the Express server
+npm run server       # Run the Express server (expects dist/ to exist)
+
+# Docker (same image used on Render)
+docker build -t chronotunes .
+docker run -p 3001:3001 chronotunes
 
 # Code Quality
 npm run lint         # Run ESLint on entire codebase
@@ -61,16 +64,18 @@ Music is played **exclusively from YouTube**, extracted server-side with `yt-dlp
 
 1. The frontend calls `fetchAudioPreview()` (`src/utils/audio.js`) which returns a
    `previewUrl` of the form `/api/audio?v=<youtubeId>`.
-2. `SongPlayer.jsx` points a plain `<audio>` element at that URL.
-3. The Express backend (`server/index.js`) spawns `yt-dlp -f bestaudio[ext=m4a]/bestaudio`
-   and streams the audio through the response (`audio/mp4`). Streaming through our
-   own server avoids CORS issues with the raw googlevideo URLs.
+2. `SongPlayer.jsx` points a plain `<audio preload="none">` element at that URL, so
+   yt-dlp only runs on the server when the user actually presses play.
+3. The `/api/audio` handler (`server/audioMiddleware.js`) spawns
+   `yt-dlp -f bestaudio[ext=m4a]/bestaudio` and streams the audio through the
+   response (`audio/mp4`). Streaming through our own server avoids CORS issues
+   with the raw googlevideo URLs.
 
 **Requirements:**
 - `yt-dlp` must be installed and on `PATH` (or set `YT_DLP_PATH`).
-- The audio backend must be running (`npm run server` or `npm run dev:all`).
-- In dev, Vite proxies `/api` to `http://localhost:3001` (see `vite.config.js`).
-- In production, set `VITE_AUDIO_API_BASE` to the backend origin if it is not same-origin.
+- Dev: `npm run dev` runs the audio handler as Vite middleware (same origin, one process).
+- Prod: `npm run server` (Express) serves the built app and `/api/audio` from one origin.
+- Set `VITE_AUDIO_API_BASE` only if the audio API is hosted on a different origin.
 
 ### Song Data Structure
 
@@ -205,16 +210,18 @@ PORT                     # Audio server port (default 3001)
 YT_DLP_PATH              # Path to the yt-dlp binary (default "yt-dlp")
 ```
 
-**Deployment:** Set the `VITE_*` variables as GitHub Secrets for the GitHub Actions
-workflow (`.github/workflows/deploy.yml`). The `.env` file is git-ignored and must
-never be committed.
+**Deployment:** The app + audio API deploy together as a single Docker web
+service (see `Dockerfile` and `render.yaml`) on Render's free tier. Set the
+`VITE_*` variables in the Render dashboard (they are baked into the frontend
+bundle at build time). The `.env` file is git-ignored and must never be
+committed.
 
 ## Common Pitfalls
 
 1. **Don't call `loadMedia()` in multiplayer mode** - It draws a random item, overriding Firebase state
 2. **Don't update parent state during render** - Use useEffect for callbacks
 3. **Host initialization race condition** - Use `useRef` flag to prevent double-initialization
-4. **Audio won't play if the backend is down** - Start it with `npm run server` / `npm run dev:all` and ensure `yt-dlp` is installed
+4. **Audio won't play if the backend is down** - In dev use `npm run dev`; in prod use `npm run server`, and ensure `yt-dlp` is installed
 
 ## File Organization
 
