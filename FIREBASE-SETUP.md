@@ -61,9 +61,9 @@ VITE_DISABLE_AUTH=false
 
 > The `.env` file is git-ignored and must never be committed.
 
-## Step 5: Add to your host's environment
+## Step 5: Build with the variables
 
-For deployment (Render), add each `VITE_*` variable in the service's
-**Environment** settings (Dashboard → your service → Environment). They are
-baked into the frontend bundle at build time.
+Add each `VITE_*` variable to your `.env` file (or pass them as Docker build
+args). They are baked into the frontend bundle at build time, so they must be
+present when you run `npm run build`.
 
