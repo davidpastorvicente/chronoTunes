@@ -40,7 +40,6 @@ export default function GameBoard({ gameConfig, language, overrideState }) {
   // This synchronizes Firebase state to local state for multiplayer
   useEffect(() => {
     if (overrideState) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (overrideState.currentItem) setCurrentItem(overrideState.currentItem);
       if (overrideState.playerTimelines) setPlayerTimelines(overrideState.playerTimelines);
       if (overrideState.scores) setScores(overrideState.scores);
@@ -93,7 +92,6 @@ export default function GameBoard({ gameConfig, language, overrideState }) {
   useEffect(() => {
     // Only initialize media in single-device mode
     if (!overrideState) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       void loadMedia();
     }
   }, [loadMedia, overrideState]);

@@ -13,7 +13,6 @@ export default function SongPlayer({ song, language }) {
   // audioRef.load() here: with preload="none" the browser only requests
   // /api/audio (which spawns yt-dlp on the server) once the user hits play.
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsPlaying(false);
     setIsPaused(false);
   }, [song]);
