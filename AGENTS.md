@@ -11,7 +11,7 @@ npm run build        # Build frontend to dist/
 npm run serve        # Build then run the Express server
 npm run server       # Run the Express server (expects dist/ to exist)
 
-# Docker (same image used on Render)
+# Docker (single image: serves built app + /api/audio)
 docker build -t chronotunes .
 docker run -p 3001:3001 chronotunes
 
@@ -212,11 +212,11 @@ PORT                     # Audio server port (default 3001)
 YT_DLP_PATH              # Path to the yt-dlp binary (default "yt-dlp")
 ```
 
-**Deployment:** The app + audio API deploy together as a single Docker web
-service (see `Dockerfile` and `render.yaml`) on Render's free tier. Set the
-`VITE_*` variables in the Render dashboard (they are baked into the frontend
-bundle at build time). The `.env` file is git-ignored and must never be
-committed.
+**Deployment:** The app + audio API run together as a single process (built
+frontend + `/api/audio` on one origin). Run locally with `npm run serve` or
+build the Docker image (see `Dockerfile`). Set the `VITE_*` variables in a
+`.env` file (they are baked into the frontend bundle at build time). The `.env`
+file is git-ignored and must never be committed.
 
 ## Common Pitfalls
 

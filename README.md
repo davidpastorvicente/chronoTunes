@@ -72,27 +72,21 @@ npm run dev
 
 ## 🌐 Deployment
 
-The frontend and the yt-dlp audio API deploy **together as one Docker web
-service** (a single origin, no CORS). GitHub Pages can't run yt-dlp, so the app
-is hosted on [Render](https://render.com)'s free tier:
-
-1. Push to GitHub and create a **New → Blueprint** in Render pointing at this
-   repo (it reads `render.yaml`), or a **New → Web Service** using the
-   `Dockerfile`.
-2. Set the `VITE_*` Firebase variables in the service's **Environment** tab.
-3. Render builds the image (`Dockerfile` installs Node, ffmpeg, and yt-dlp),
-   deploys it, and auto-redeploys on every push.
-
-Locally you can build/run the same image:
+The frontend and the yt-dlp audio API run **together as one process** (a single
+origin, no CORS). Run it locally with Node, or build/run the Docker image:
 
 ```bash
+# Node (builds the app, then serves it + /api/audio on one port)
+npm run serve                         # http://localhost:3001
+
+# Docker (same image)
 docker build -t chronotunes .
 docker run -p 3001:3001 chronotunes   # http://localhost:3001
 ```
 
-> Heads-up: on cloud hosts, YouTube may throttle datacenter IPs. If audio
-> extraction fails in production, yt-dlp may need a cookies file or
-> `--extractor-args`.
+Set the `VITE_*` Firebase variables in a `.env` file (they are baked into the
+frontend bundle at build time). `yt-dlp` and `ffmpeg` must be available (the
+Dockerfile installs both).
 
 ## 🛠 Tech Stack
 

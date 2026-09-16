@@ -3,9 +3,9 @@ FROM node:20-slim AS build
 
 WORKDIR /app
 
-# Vite bakes VITE_* env vars into the bundle at build time. Render passes a
-# service's environment variables to Docker builds as build args, so we accept
-# them here and expose them to `npm run build`.
+# Vite bakes VITE_* env vars into the bundle at build time. Pass them as build
+# args (e.g. `docker build --build-arg VITE_FIREBASE_API_KEY=...`) so they are
+# available to `npm run build`.
 ARG VITE_DISABLE_AUTH=true
 ARG VITE_APP_PASSWORD
 ARG VITE_FIREBASE_API_KEY
