@@ -9,10 +9,13 @@ export default function SongPlayer({ song, language }) {
 
   const t = translations[language];
 
+  // Reset the player UI when the song changes. We intentionally do NOT call
+  // audioRef.load() here: with preload="none" the browser only requests
+  // /api/audio (which spawns yt-dlp on the server) once the user hits play.
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.load();
-    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsPlaying(false);
+    setIsPaused(false);
   }, [song]);
 
   const handlePlayClick = () => {
@@ -36,7 +39,7 @@ export default function SongPlayer({ song, language }) {
 
   return (
     <div className="song-player">
-      <audio ref={audioRef} src={song.previewUrl} />
+      <audio ref={audioRef} src={song.previewUrl} preload="none" />
       {!isPlaying ? (
         <div className="play-button-container">
           <button className="play-button" onClick={handlePlayClick}>
