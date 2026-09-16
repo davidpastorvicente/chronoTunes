@@ -13,7 +13,12 @@ const YT_DLP = process.env.YT_DLP_PATH || 'yt-dlp';
 //                               (e.g. "youtube:player_client=android")
 //   YT_DLP_PROXY                proxy URL (--proxy), e.g. a residential proxy
 const YT_DLP_COOKIES_FROM_BROWSER = process.env.YT_DLP_COOKIES_FROM_BROWSER;
-const YT_DLP_EXTRACTOR_ARGS = process.env.YT_DLP_EXTRACTOR_ARGS;
+// YouTube enforces PO tokens for the default `web` client's audio streams,
+// which fails on datacenter IPs ("Requested format is not available"). Try a
+// set of clients that don't require a PO token (with cookies, `tv` formats are
+// not DRM'd). Override with YT_DLP_EXTRACTOR_ARGS if needed.
+const YT_DLP_EXTRACTOR_ARGS =
+  process.env.YT_DLP_EXTRACTOR_ARGS || 'youtube:player_client=default,tv,web_embedded,web_safari';
 const YT_DLP_PROXY = process.env.YT_DLP_PROXY;
 
 // yt-dlp writes refreshed cookies back to the --cookies file, but hosts like
