@@ -6,13 +6,12 @@ End-to-end script that:
 1. Fetches playlist tracks from YouTube Music
 2. Cleans titles (removes parentheses like "Official Video", "feat.", etc.)
 3. Searches for official YouTube video IDs (ensures best match)
-4. Gets title and artist from YouTube API response
+4. Gets title, artist, and release year from YouTube API response
 5. Cleans YouTube title again (removes any remaining parentheses/brackets)
-6. Gets Deezer IDs, album covers, and years using cleaned YouTube metadata
-7. Optionally processes until N songs are successfully imported
-8. Removes duplicates (checks against existing songs)
-9. Formats songs correctly (including type and language fields)
-10. Appends to src/data/songs.json (sorted by year)
+6. Optionally processes until N songs are successfully imported
+7. Removes duplicates (checks against existing songs)
+8. Formats songs correctly (including type and language fields)
+9. Appends to src/data/songs.json (sorted by year)
 
 Usage:
     python3 scripts/add-playlist.py PLAYLIST_ID [--language en|es] [--limit N]
@@ -48,7 +47,7 @@ import json
 from ytmusicapi import YTMusic
 
 # Import common utilities
-from common import fetch_youtube_data, get_deezer_data_with_year, clean_artist_name
+from common import fetch_youtube_data, clean_artist_name
 
 
 def extract_playlist_id(url_or_id):
@@ -118,43 +117,40 @@ def process_tracks(tracks, limit=None):
         print(f"    Searching: {clean_title} - {artist}")
         
         # Search for YouTube ID (instead of using playlist's video ID)
-        # This also gets the canonical title and artist from YouTube
-        video_id, youtube_title, youtube_artist = fetch_youtube_data(ytmusic, clean_title, artist)
-        
+        # This also gets the canonical title, artist, and year from YouTube
+        video_id, youtube_title, youtube_artist, year = fetch_youtube_data(ytmusic, clean_title, artist)
+
         if not video_id:
             print(f"    ❌ No YouTube video ID found")
             failed.append({'title': title, 'artist': artist, 'reason': 'No YouTube ID'})
             continue
-        
+
         print(f"    YouTube says: {youtube_title} - {youtube_artist}")
-        
+
         # Clean YouTube's title as well (sometimes it also has parentheses/brackets)
         clean_youtube_title = re.sub(r'\([^)]*\)', '', youtube_title).strip()
         clean_youtube_title = re.sub(r'\[[^]]*]', '', clean_youtube_title).strip()
-        
+
         if clean_youtube_title != youtube_title:
             print(f"    Cleaned to: {clean_youtube_title}")
-        
-        # Get Deezer data using cleaned YouTube metadata
-        deezer_data = get_deezer_data_with_year(clean_youtube_title, youtube_artist)
-        
-        if not deezer_data:
-            print(f"    ⚠️  No Deezer data found - skipping")
-            failed.append({'title': clean_youtube_title, 'artist': youtube_artist, 'reason': 'No Deezer data'})
+
+        # A year is required for timeline gameplay
+        if not year:
+            print(f"    ⚠️  No release year found - skipping")
+            failed.append({'title': clean_youtube_title, 'artist': youtube_artist, 'reason': 'No year'})
             continue
-        
+
         song = {
             'title': clean_youtube_title,  # Use cleaned YouTube title
             'artist': youtube_artist,  # Use YouTube's canonical artist
-            'year': deezer_data['year'],
+            'year': year,
             'youtubeId': video_id,
-            'deezerId': deezer_data['deezerId'],
             'type': 'song',
             'language': language
         }
-        
+
         processed_songs.append(song)
-        print(f"    ✅ Year: {deezer_data['year']} - DeezerID: {deezer_data['deezerId']} - YouTubeID: {video_id}")
+        print(f"    ✅ Year: {year} - YouTubeID: {video_id}")
         
         # Rate limiting
         time.sleep(0.3)
@@ -348,7 +344,6 @@ def main():
     print("1. Run 'npm run build' to verify")
     print("2. Test the game with new songs")
     print("3. Commit changes to git")
-    print("\nNote: Preview URLs are fetched at runtime via fetchDeezerPreview()")
 
 if __name__ == "__main__":
     main()

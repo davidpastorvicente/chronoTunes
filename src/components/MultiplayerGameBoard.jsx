@@ -26,7 +26,7 @@ export default function MultiplayerGameBoard({ gameConfig, language, onTurnIndic
 
     let firstItem;
     if (item.type === 'song') {
-      // Fetch Deezer preview URL at runtime (they expire after ~24h)
+      // Resolve the YouTube/yt-dlp audio URL at runtime
       const { previewUrl, albumCover } = await fetchAudioPreview(item);
       firstItem = { ...item, previewUrl, albumCover };
     } else {
@@ -249,7 +249,7 @@ function MultiplayerGameBoardActive({ gameConfig, gameData, language, onPlaceIte
 
     let nextItem;
     if (item.type === 'song') {
-      // Fetch Deezer preview URL at runtime (they expire after ~24h)
+      // Resolve the YouTube/yt-dlp audio URL at runtime
       const { previewUrl, albumCover } = await fetchAudioPreview(item);
       nextItem = { ...item, previewUrl, albumCover };
     } else {

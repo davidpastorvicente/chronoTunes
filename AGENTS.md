@@ -229,15 +229,14 @@ never be committed.
 - **Services:** `src/services/gameSession.js` (Firebase operations)
 - **Components:** `src/components/` (co-located CSS files)
 - **Python scripts (in `scripts/` folder):**
-  - `common.py` - Shared utilities used by all scripts (YouTube/Deezer/TMDB API calls)
+  - `common.py` - Shared utilities used by all scripts (YouTube Music / TMDB API calls)
   - `add-playlist.py` - Add YouTube playlists to the song database
   - `fetch-movies.py` - Fetch movies/shows: `fetch-movies.py movies` or `fetch-movies.py shows`
-  - `check-duplicates.py` - Check for duplicate IDs or titles (use --fix to auto-update)
-  - `check-titles.py` - Validate song titles against Deezer API (flags mismatches)
-  - `update-ids.py` - Fetch missing YouTube/Deezer IDs, or re-fetch all with --force flag
+  - `check-duplicates.py` - Check for duplicate YouTube IDs or titles (use --fix to auto-update)
+  - `update-ids.py` - Fetch missing YouTube IDs, or re-fetch all with --force flag
 
-> Note: some data-maintenance scripts still query Deezer/TMDB metadata to enrich the
-> database. Runtime music playback, however, uses YouTube via yt-dlp only.
+> Note: song metadata (IDs and release year) comes from YouTube Music; movie/show
+> metadata comes from TMDB. Runtime music playback uses YouTube via yt-dlp only.
 
 ## Category System
 

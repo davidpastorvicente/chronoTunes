@@ -5,14 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "server": "node server/index.js",
-    "dev:all": "concurrently -n web,api -c cyan,magenta \"npm run dev\" \"npm run server\"",
     "build": "vite build",
+    "serve": "npm run build && node server/index.js",
+    "server": "node server/index.js",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
-    "cors": "^2.8.5",
     "express": "^5.1.0",
     "firebase": "^12.8.0",
     "react": "^19.2.0",
@@ -23,7 +22,6 @@
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",
-    "concurrently": "^9.1.2",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",

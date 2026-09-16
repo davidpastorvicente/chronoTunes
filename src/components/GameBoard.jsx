@@ -70,7 +70,7 @@ export default function GameBoard({ gameConfig, language, overrideState }) {
 
     let enrichedItem = { ...item };
 
-    // For songs, fetch Deezer preview URL at runtime (they expire after ~24h)
+    // For songs, resolve the YouTube/yt-dlp audio URL at runtime
     if (item.type === 'song') {
       const { previewUrl, albumCover } = await fetchAudioPreview(item);
       enrichedItem = { ...item, previewUrl, albumCover };

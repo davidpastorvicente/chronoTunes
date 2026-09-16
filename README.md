@@ -162,14 +162,12 @@ python3 scripts/check-duplicates.py
 ```
 
 This will scan both English and Spanish song databases for:
-- 🔴 Duplicate Deezer IDs
 - 🔴 Duplicate YouTube IDs  
 - 🔴 Duplicate titles (case-insensitive)
 
-**When duplicates are found**, the script automatically:
+**When duplicate YouTube IDs are found**, the script automatically:
 1. Re-fetches the correct YouTube ID for each song (using `ytmusic.search()`)
-2. Re-fetches the correct Deezer ID for each song (using Deezer search API)
-3. Shows you the new correct IDs
+2. Shows you the new correct IDs
 
 **To automatically fix the files:**
 ```bash
@@ -177,21 +175,6 @@ python3 scripts/check-duplicates.py --fix
 ```
 
 This will update the data files with the correct IDs.
-
-### Validating Song Titles
-
-Validate that song titles in the database match Deezer API:
-
-```bash
-python3 scripts/check-titles.py
-```
-
-This will:
-- Fetch the actual title from Deezer API using each song's `deezerId`
-- Compare it with the title stored in the database
-- Flag any mismatches (ignoring accents, case, and special characters)
-
-**Note:** Some mismatches are acceptable (e.g., remaster notes, featured artists). The database intentionally keeps cleaner titles while Deezer includes extra metadata like "(Remastered 2015)" or "(feat. Artist)".
 
 ### Adding Songs from YouTube Playlists
 
@@ -215,7 +198,7 @@ The script will:
 - ✅ Clean titles by removing parentheses/brackets (done twice: before search and after receiving YouTube data)
 - ✅ Optionally process until N songs are successfully imported
 - ✅ Search for official YouTube video IDs (ensures best/canonical versions)
-- ✅ Get YouTube IDs, Deezer IDs, album covers, and years
+- ✅ Get YouTube IDs and release years from YouTube Music
 - ✅ Remove duplicates automatically
 - ✅ Append formatted songs to `src/data/songs.json` (sorted by year)
 
@@ -243,8 +226,7 @@ python3 scripts/update-ids.py
 
 The script will automatically:
 - ✅ Fetch YouTube IDs from YouTube Music API
-- ✅ Fetch Deezer IDs from Deezer API (for ad-free playback)
-- ✅ Update the data files with both IDs
+- ✅ Update the data file with the IDs
 
 ### Manual ID Entry
 
@@ -256,13 +238,12 @@ You can also add songs with IDs directly:
   "artist": "Artist Name",
   "year": 2024,
   "youtubeId": "youtube_video_id",
-  "deezerId": "deezer_track_id",
   "type": "song",
   "language": "en"
 }
 ```
 
-**Note:** Do NOT add `albumCover` or `previewUrl` - these are fetched at runtime.
+**Note:** Do NOT add `previewUrl` - it is resolved at runtime from `youtubeId`.
 
 For movies/TV shows:
 
@@ -298,12 +279,16 @@ src/
 │   ├── movies.json              # All movies (English + Spanish)
 │   └── shows.json               # All TV shows (English + Spanish)
 ├── utils/
-│   ├── deezer.js                # Deezer API with CORS proxy fallback
-│   └── mediaLoader.js           # Media set creation and filtering
+│   ├── audio.js                # Resolves the YouTube/yt-dlp audio URL
+│   └── mediaLoader.js          # Media set creation and filtering
 ├── services/
-│   └── gameSession.js           # Firebase operations
+│   └── gameSession.js          # Firebase operations
 ├── translations.js              # English/Spanish translations
 └── App.jsx                      # Root component
+
+server/
+├── index.js                     # Express server (prod: serves app + audio API)
+└── audioMiddleware.js           # yt-dlp audio streaming (used by Vite dev + Express)
 ```
 
 ## 🎯 No API Keys Required!

@@ -10,8 +10,9 @@
  * @returns {{ previewUrl: string|null, albumCover: string|null }}
  */
 export async function fetchAudioPreview(song) {
-  // Base URL for the audio backend. Empty string means same origin, which
-  // works in dev via the Vite proxy (`/api` -> http://localhost:3001).
+  // Base URL for the audio backend. Empty string means same origin, which is
+  // the normal case: in dev the Vite server runs the yt-dlp middleware, and in
+  // production the Express server serves both the app and /api/audio.
   const apiBase = import.meta.env.VITE_AUDIO_API_BASE || '';
 
   let previewUrl = null;
