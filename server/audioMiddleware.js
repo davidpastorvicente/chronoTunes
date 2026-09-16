@@ -1,57 +1,6 @@
 import { spawn } from 'node:child_process';
-import { copyFileSync, chmodSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
 
 const YT_DLP = process.env.YT_DLP_PATH || 'yt-dlp';
-
-// Optional yt-dlp auth/extraction tuning (useful on cloud hosts where YouTube
-// shows "Sign in to confirm you're not a bot"):
-//   YT_DLP_COOKIES              path to a Netscape cookies.txt file (--cookies)
-//   YT_DLP_COOKIES_FROM_BROWSER browser name for --cookies-from-browser
-//   YT_DLP_EXTRACTOR_ARGS       value for --extractor-args
-//                               (e.g. "youtube:player_client=android")
-//   YT_DLP_PROXY                proxy URL (--proxy), e.g. a residential proxy
-const YT_DLP_COOKIES_FROM_BROWSER = process.env.YT_DLP_COOKIES_FROM_BROWSER;
-// YouTube enforces PO tokens for the default `web` client's audio streams,
-// which fails on datacenter IPs ("Requested format is not available"). Try a
-// set of clients that don't require a PO token (with cookies, `tv` formats are
-// not DRM'd). Override with YT_DLP_EXTRACTOR_ARGS if needed.
-const YT_DLP_EXTRACTOR_ARGS =
-  process.env.YT_DLP_EXTRACTOR_ARGS || 'youtube:player_client=default,tv,web_embedded,web_safari';
-const YT_DLP_PROXY = process.env.YT_DLP_PROXY;
-
-// yt-dlp writes refreshed cookies back to the --cookies file, but hosts like
-// Render mount secret files read-only (/etc/secrets/...). Copy the cookies to a
-// writable temp file once at startup and point yt-dlp at that copy instead.
-const YT_DLP_COOKIES = (() => {
-  const src = process.env.YT_DLP_COOKIES;
-  if (!src) return undefined;
-  try {
-    const dest = join(tmpdir(), 'chronotunes-cookies.txt');
-    rmSync(dest, { force: true }); // clear any stale (possibly read-only) copy
-    copyFileSync(src, dest);
-    chmodSync(dest, 0o600); // copyFileSync preserves mode; ensure it's writable
-    return dest;
-  } catch (err) {
-    console.error(`Could not copy cookies file (${src}) to a writable path:`, err.message);
-    return src; // fall back to the original path
-  }
-})();
-
-function buildYtDlpArgs(target) {
-  const args = ['--no-playlist', '--quiet', '--no-warnings'];
-
-  if (YT_DLP_COOKIES) args.push('--cookies', YT_DLP_COOKIES);
-  if (YT_DLP_COOKIES_FROM_BROWSER) args.push('--cookies-from-browser', YT_DLP_COOKIES_FROM_BROWSER);
-  if (YT_DLP_EXTRACTOR_ARGS) args.push('--extractor-args', YT_DLP_EXTRACTOR_ARGS);
-  if (YT_DLP_PROXY) args.push('--proxy', YT_DLP_PROXY);
-
-  // Prefer m4a (audio/mp4); then any audio-only; then an mp4 combined stream;
-  // then anything available. The <audio> element ignores any video track.
-  args.push('-f', 'bestaudio[ext=m4a]/bestaudio/best[ext=mp4]/best', '-o', '-', target);
-  return args;
-}
 
 // Basic validation for YouTube video IDs (11 chars, URL-safe base64 alphabet)
 const VIDEO_ID_RE = /^[A-Za-z0-9_-]{11}$/;
@@ -91,7 +40,17 @@ export function ytdlpAudioMiddleware(req, res, next) {
 
   const target = `https://www.youtube.com/watch?v=${videoId}`;
 
-  const args = buildYtDlpArgs(target);
+  // Prefer m4a (audio/mp4) so the browser gets a widely-supported container.
+  const args = [
+    '--no-playlist',
+    '--quiet',
+    '--no-warnings',
+    '-f',
+    'bestaudio[ext=m4a]/bestaudio',
+    '-o',
+    '-',
+    target,
+  ];
 
   const child = spawn(YT_DLP, args, { stdio: ['ignore', 'pipe', 'pipe'] });
 

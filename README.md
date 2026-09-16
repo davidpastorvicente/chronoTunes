@@ -92,33 +92,7 @@ docker run -p 3001:3001 chronotunes   # http://localhost:3001
 
 > Heads-up: on cloud hosts, YouTube may throttle datacenter IPs. If audio
 > extraction fails in production, yt-dlp may need a cookies file or
-> `--extractor-args` (see below).
-
-### Fixing "Sign in to confirm you're not a bot"
-
-YouTube blocks many datacenter IPs and asks yt-dlp to authenticate. The server
-reads these optional environment variables and passes them to yt-dlp:
-
-| Variable | yt-dlp flag | Example |
-|----------|-------------|---------|
-| `YT_DLP_COOKIES` | `--cookies` | `/etc/secrets/cookies.txt` |
-| `YT_DLP_COOKIES_FROM_BROWSER` | `--cookies-from-browser` | `chrome` |
-| `YT_DLP_EXTRACTOR_ARGS` | `--extractor-args` | `youtube:player_client=android` |
-| `YT_DLP_PROXY` | `--proxy` | `http://user:pass@host:port` |
-
-**Recommended fix (cookies) on Render:**
-
-1. In a browser **logged into YouTube** (ideally a throwaway Google account),
-   export cookies to a `cookies.txt` file (Netscape format) using an extension
-   like "Get cookies.txt LOCALLY".
-2. In Render: your service → **Environment → Secret Files → Add Secret File**,
-   name it `cookies.txt` and paste the contents. It mounts at
-   `/etc/secrets/cookies.txt`.
-3. Add an env var `YT_DLP_COOKIES=/etc/secrets/cookies.txt` and redeploy.
-
-> Cookies expire, so you may need to refresh them periodically. If cookies alone
-> aren't enough on a heavily-flagged IP, route yt-dlp through a residential proxy
-> via `YT_DLP_PROXY`.
+> `--extractor-args`.
 
 ## 🛠 Tech Stack
 

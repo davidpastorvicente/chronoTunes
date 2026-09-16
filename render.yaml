@@ -16,11 +16,6 @@ services:
       # Same-origin: the app and /api are served by this one service.
       - key: VITE_AUDIO_API_BASE
         value: ""
-      # YouTube blocks datacenter IPs ("Sign in to confirm you're not a bot").
-      # Add a Netscape cookies.txt as a Render "Secret File" and point yt-dlp at
-      # it. Uncomment and set the path to the mounted secret file:
-      # - key: YT_DLP_COOKIES
-      #   value: /etc/secrets/cookies.txt
       # Firebase (multi-device mode) - set the values in the Render dashboard.
       - key: VITE_APP_PASSWORD
         sync: false

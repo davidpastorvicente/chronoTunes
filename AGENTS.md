@@ -206,15 +206,8 @@ VITE_AUDIO_API_BASE      # Origin of the yt-dlp audio backend (if not same-origi
 Backend (`server/index.js`):
 
 ```
-PORT                          # Audio server port (default 3001)
-YT_DLP_PATH                   # Path to the yt-dlp binary (default "yt-dlp")
-
-# Optional yt-dlp auth/extraction tuning (fixes "confirm you're not a bot" on
-# cloud/datacenter IPs):
-YT_DLP_COOKIES                # Path to a Netscape cookies.txt (--cookies)
-YT_DLP_COOKIES_FROM_BROWSER   # Browser name for --cookies-from-browser
-YT_DLP_EXTRACTOR_ARGS         # e.g. "youtube:player_client=android"
-YT_DLP_PROXY                  # Proxy URL for --proxy (e.g. a residential proxy)
+PORT                     # Audio server port (default 3001)
+YT_DLP_PATH              # Path to the yt-dlp binary (default "yt-dlp")
 ```
 
 **Deployment:** The app + audio API deploy together as a single Docker web
