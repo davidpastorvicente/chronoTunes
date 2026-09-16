@@ -2,6 +2,31 @@ import { spawn } from 'node:child_process';
 
 const YT_DLP = process.env.YT_DLP_PATH || 'yt-dlp';
 
+// Optional yt-dlp auth/extraction tuning (useful on cloud hosts where YouTube
+// shows "Sign in to confirm you're not a bot"):
+//   YT_DLP_COOKIES              path to a Netscape cookies.txt file (--cookies)
+//   YT_DLP_COOKIES_FROM_BROWSER browser name for --cookies-from-browser
+//   YT_DLP_EXTRACTOR_ARGS       value for --extractor-args
+//                               (e.g. "youtube:player_client=android")
+//   YT_DLP_PROXY                proxy URL (--proxy), e.g. a residential proxy
+const YT_DLP_COOKIES = process.env.YT_DLP_COOKIES;
+const YT_DLP_COOKIES_FROM_BROWSER = process.env.YT_DLP_COOKIES_FROM_BROWSER;
+const YT_DLP_EXTRACTOR_ARGS = process.env.YT_DLP_EXTRACTOR_ARGS;
+const YT_DLP_PROXY = process.env.YT_DLP_PROXY;
+
+function buildYtDlpArgs(target) {
+  const args = ['--no-playlist', '--quiet', '--no-warnings'];
+
+  if (YT_DLP_COOKIES) args.push('--cookies', YT_DLP_COOKIES);
+  if (YT_DLP_COOKIES_FROM_BROWSER) args.push('--cookies-from-browser', YT_DLP_COOKIES_FROM_BROWSER);
+  if (YT_DLP_EXTRACTOR_ARGS) args.push('--extractor-args', YT_DLP_EXTRACTOR_ARGS);
+  if (YT_DLP_PROXY) args.push('--proxy', YT_DLP_PROXY);
+
+  // Prefer m4a (audio/mp4) so the browser gets a widely-supported container.
+  args.push('-f', 'bestaudio[ext=m4a]/bestaudio', '-o', '-', target);
+  return args;
+}
+
 // Basic validation for YouTube video IDs (11 chars, URL-safe base64 alphabet)
 const VIDEO_ID_RE = /^[A-Za-z0-9_-]{11}$/;
 
@@ -40,17 +65,7 @@ export function ytdlpAudioMiddleware(req, res, next) {
 
   const target = `https://www.youtube.com/watch?v=${videoId}`;
 
-  // Prefer m4a (audio/mp4) so the browser gets a widely-supported container.
-  const args = [
-    '--no-playlist',
-    '--quiet',
-    '--no-warnings',
-    '-f',
-    'bestaudio[ext=m4a]/bestaudio',
-    '-o',
-    '-',
-    target,
-  ];
+  const args = buildYtDlpArgs(target);
 
   const child = spawn(YT_DLP, args, { stdio: ['ignore', 'pipe', 'pipe'] });
 
