@@ -60,10 +60,60 @@ def fetch_album_year(ytmusic, album_browse_id):
         return None
 
 
+# Album-name keywords that usually indicate a reissue/compilation rather than
+# the original release, so we skip them when estimating the original year.
+_REISSUE_KEYWORDS = [
+    'remaster', 'deluxe', 'edition', 'anniversary', 'greatest', 'best of',
+    'compilation', 'hits', 'live', 'version', 'collection', 'reissue',
+]
+
+
+def _artist_matches(requested_artist, result_artists):
+    """True if a search result's artist plausibly matches the requested one."""
+    if not requested_artist:
+        return True
+    names = ' '.join(
+        a.get('name', '') for a in (result_artists or []) if isinstance(a, dict)
+    ).lower()
+    token = requested_artist.lower().split()[0] if requested_artist.split() else ''
+    return token in names if token else True
+
+
+def estimate_release_year(ytmusic, title, artist):
+    """
+    Estimate a song's original release year from YouTube Music.
+
+    Searches several song matches, keeps only those by the requested artist on
+    albums that are not obvious reissues/compilations, and returns the earliest
+    album year found. YouTube's data is album-based, so this is a best effort:
+    older songs often resolve to a reissue year. Verify results for old tracks.
+
+    Returns:
+        int: Estimated year, or None if nothing suitable was found
+    """
+    try:
+        results = ytmusic.search(f"{title} {artist}", filter="songs", limit=5)
+    except Exception as e:
+        print(f"      ⚠️  YouTube search error: {e}")
+        return None
+
+    earliest = None
+    for result in results or []:
+        if not _artist_matches(artist, result.get('artists')):
+            continue
+        album = result.get('album') or {}
+        album_name = album.get('name', '').lower()
+        if any(keyword in album_name for keyword in _REISSUE_KEYWORDS):
+            continue
+        year = fetch_album_year(ytmusic, album.get('id'))
+        if year and (earliest is None or year < earliest):
+            earliest = year
+    return earliest
+
+
 def fetch_youtube_data(ytmusic, title, artist):
     """
-    Fetch YouTube ID, title, artist, and release year by searching YouTube Music.
-    Returns full metadata from YouTube for more accurate data.
+    Fetch YouTube ID, title, artist, and estimated release year from YouTube Music.
 
     Args:
         ytmusic: YTMusic instance
@@ -89,9 +139,8 @@ def fetch_youtube_data(ytmusic, title, artist):
             else:
                 youtube_artist = artist  # Fallback to original
 
-            # Resolve release year from the song's album
-            album_browse_id = (result.get('album') or {}).get('id')
-            year = fetch_album_year(ytmusic, album_browse_id)
+            # Estimate the original release year across candidate albums
+            year = estimate_release_year(ytmusic, youtube_title, youtube_artist)
 
             return video_id, youtube_title, youtube_artist, year
         return None, None, None, None
