@@ -169,6 +169,7 @@
 
 .game-layout {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-6);
   align-items: start;
 }
@@ -402,18 +403,12 @@
 
 /* Result */
 .result {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-4);
   animation: fade-up var(--duration) var(--ease);
 }
 
 .result-body {
   display: flex;
   gap: var(--space-5);
-  align-items: flex-start;
-  width: 100%;
 }
 
 .result-art {
@@ -438,7 +433,6 @@
   grid-template-rows: repeat(3, auto) 1fr;
   column-gap: var(--space-4);
   row-gap: var(--space-1);
-  align-self: stretch;
   min-width: 0;
   overflow-wrap: break-word;
 }
@@ -478,26 +472,20 @@
 }
 
 @media (max-width: 559px) {
-  .result-info {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: none;
+  .result-art {
+    width: 88px;
   }
 
-  .result-info > * {
-    grid-column: 1;
-    grid-row: auto;
+  .result-body {
+    gap: var(--space-4);
   }
 
-  .result-badge {
-    order: -1;
-    justify-self: start;
-    margin-bottom: var(--space-2);
+  .result-info .heading-subhead {
+    grid-column: 1 / -1;
   }
 
   .result-year {
-    grid-row: auto;
-    margin-top: auto;
-    justify-self: end;
+    grid-row: 3 / -1;
   }
 }
 
