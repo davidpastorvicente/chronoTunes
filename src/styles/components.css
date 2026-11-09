@@ -68,11 +68,15 @@
 
 @media (max-width: 559px) {
   .brand-name {
+    font-size: 1.25rem;
+  }
+
+  .header-status {
     display: none;
   }
 
   .app-header-inner {
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: 1fr auto;
   }
 }
 
