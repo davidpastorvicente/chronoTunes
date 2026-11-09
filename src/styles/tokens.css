@@ -1,0 +1,142 @@
+/*
+ * Design tokens — "Genesis" design system (see DESIGN.md).
+ * Components must use these variables, never raw values.
+ */
+:root {
+  color-scheme: light;
+
+  /* Color */
+  --color-primary: #6366f1; /* rings, borders, glow */
+  --color-primary-hover: #4f46e5;
+  /* Filled surfaces with text: #6366f1 only reaches 4.3:1 with light text,
+     so fills use the palette's darker indigo to meet WCAG AA (≥ 4.5:1). */
+  --color-primary-fill: #4f46e5;
+  --color-primary-fill-hover: #4338ca;
+  --color-primary-text: #4f46e5; /* indigo text on light surfaces, AA contrast */
+  --color-primary-subtle: rgba(99, 102, 241, 0.08);
+  --color-on-primary: #fafafa;
+  --color-neutral: #9c9c9c;
+  --color-bg: #fafafa;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f4f4f5;
+  --color-text: #0a0a0a;
+  --color-text-secondary: #6b6b6b;
+  --color-border: #e8e8ec;
+  --color-border-strong: #d4d4d8;
+  --color-chip: #f4f4f5;
+  --color-chip-text: #52525b;
+  --color-success: #10b981;
+  --color-success-text: #047857;
+  --color-success-subtle: #ecfdf5;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-error-text: #b91c1c;
+  --color-error-subtle: #fef2f2;
+  --color-dot: rgba(10, 10, 10, 0.09);
+  --color-dot-active: rgba(99, 102, 241, 0.55);
+  --color-nav: rgba(250, 250, 250, 0.8);
+
+  /* Typography */
+  --font-display: 'General Sans', 'DM Sans', system-ui, sans-serif;
+  --font-body: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --weight-regular: 400;
+  --weight-strong: 600;
+  --text-display: clamp(2.5rem, 1.5rem + 5vw, 4.5rem); /* 72px max */
+  --text-headline: clamp(2rem, 1.25rem + 3.5vw, 3.75rem); /* 60px max */
+  --text-section: clamp(1.5rem, 1.25rem + 1vw, 2rem); /* 32px max */
+  --text-subhead: 1.5rem; /* 24px */
+  --text-body: 0.9375rem; /* 15px */
+  --text-small: 0.8125rem; /* 13px */
+  --text-caption: 0.75rem; /* 12px */
+  --text-overline: 0.6875rem; /* 11px */
+  --tracking-display: -0.04em;
+  --tracking-heading: -0.03em;
+
+  /* Spacing (4px grid) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+
+  /* Radius */
+  --radius-xs: 4px; /* chips, badges, inline code */
+  --radius-sm: 6px; /* buttons, inputs */
+  --radius-md: 8px; /* panels, dropdowns, timeline items */
+  --radius-lg: 12px; /* cards */
+  --radius-full: 9999px; /* avatars, pills */
+
+  /* Elevation: flat by default, shadows only on hover/focus */
+  --shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.08);
+  --shadow-primary: 0 4px 12px rgba(99, 102, 241, 0.35);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --ring: 0 0 0 3px rgba(99, 102, 241, 0.12);
+  --focus-outline: 2px solid var(--color-primary);
+
+  /* Motion */
+  --duration: 200ms;
+  --duration-fast: 150ms;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Layout */
+  --container: 1280px;
+  --nav-height: 56px;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --color-primary-text: #a5b4fc;
+  --color-primary-subtle: rgba(129, 140, 248, 0.14);
+  --color-neutral: #71717a;
+  --color-bg: #0b0b0f;
+  --color-surface: #131318;
+  --color-surface-alt: #1c1c23;
+  --color-text: #f4f4f5;
+  --color-text-secondary: #a1a1aa;
+  --color-border: #26262e;
+  --color-border-strong: #3f3f46;
+  --color-chip: #22222a;
+  --color-chip-text: #d4d4d8;
+  --color-success-text: #34d399;
+  --color-success-subtle: rgba(16, 185, 129, 0.12);
+  --color-error-text: #f87171;
+  --color-error-subtle: rgba(239, 68, 68, 0.12);
+  --color-dot: rgba(244, 244, 245, 0.08);
+  --color-dot-active: rgba(165, 180, 252, 0.6);
+  --color-nav: rgba(11, 11, 15, 0.75);
+
+  --shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.5);
+  --ring: 0 0 0 3px rgba(129, 140, 248, 0.35);
+  --focus-outline: 2px solid #818cf8;
+}
+
+/*
+ * Pastel tones for timeline items. Each tone sets a soft background, a border,
+ * a saturated dot (axis marker) and an "ink" for secondary text that keeps
+ * AA contrast on its own background.
+ */
+.tone-rose { --tone-bg: #fdecf2; --tone-border: #f8cddd; --tone-dot: #f472b6; --tone-ink: #9d174d; }
+.tone-peach { --tone-bg: #fff0e4; --tone-border: #fdd5b4; --tone-dot: #fb923c; --tone-ink: #9a3412; }
+.tone-butter { --tone-bg: #fef7da; --tone-border: #f9e49c; --tone-dot: #eab308; --tone-ink: #854d0e; }
+.tone-mint { --tone-bg: #e4f7ee; --tone-border: #b6e8d0; --tone-dot: #34d399; --tone-ink: #065f46; }
+.tone-sky { --tone-bg: #e5f2fd; --tone-border: #bcdcf8; --tone-dot: #38bdf8; --tone-ink: #075985; }
+.tone-lavender { --tone-bg: #efebfe; --tone-border: #d6cdfb; --tone-dot: #a78bfa; --tone-ink: #5b21b6; }
+.tone-aqua { --tone-bg: #e0f6f5; --tone-border: #b2e6e3; --tone-dot: #2dd4bf; --tone-ink: #115e59; }
+
+:root[data-theme='dark'] .tone-rose { --tone-bg: rgba(244, 114, 182, 0.13); --tone-border: rgba(244, 114, 182, 0.3); --tone-ink: #f9a8d4; }
+:root[data-theme='dark'] .tone-peach { --tone-bg: rgba(251, 146, 60, 0.13); --tone-border: rgba(251, 146, 60, 0.3); --tone-ink: #fdba74; }
+:root[data-theme='dark'] .tone-butter { --tone-bg: rgba(234, 179, 8, 0.12); --tone-border: rgba(234, 179, 8, 0.3); --tone-ink: #fde047; }
+:root[data-theme='dark'] .tone-mint { --tone-bg: rgba(52, 211, 153, 0.12); --tone-border: rgba(52, 211, 153, 0.3); --tone-ink: #6ee7b7; }
+:root[data-theme='dark'] .tone-sky { --tone-bg: rgba(56, 189, 248, 0.12); --tone-border: rgba(56, 189, 248, 0.3); --tone-ink: #7dd3fc; }
+:root[data-theme='dark'] .tone-lavender { --tone-bg: rgba(167, 139, 250, 0.14); --tone-border: rgba(167, 139, 250, 0.32); --tone-ink: #c4b5fd; }
+:root[data-theme='dark'] .tone-aqua { --tone-bg: rgba(45, 212, 191, 0.12); --tone-border: rgba(45, 212, 191, 0.3); --tone-ink: #5eead4; }

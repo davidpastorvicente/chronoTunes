@@ -1,0 +1,174 @@
+{
+  "app": {
+    "name": "ChronoTunes",
+    "tagline": "Hear it, see it, place it. Build your timeline one song, movie or show at a time."
+  },
+  "nav": {
+    "language": "Language",
+    "themeToDark": "Switch to dark mode",
+    "themeToLight": "Switch to light mode",
+    "exit": "Exit game",
+    "exitConfirm": "Leave this game? Progress will be lost."
+  },
+  "auth": {
+    "title": "Private game",
+    "subtitle": "Enter the password to continue.",
+    "label": "Password",
+    "submit": "Enter"
+  },
+  "errors": {
+    "wrongPassword": "Incorrect password. Try again.",
+    "authNotConfigured": "Authentication is not configured for this deployment.",
+    "nameRequired": "Enter your name to continue.",
+    "invalidCode": "Game codes have 6 characters.",
+    "gameNotFound": "No game found with that code.",
+    "gameStarted": "That game has already started.",
+    "network": "Couldn't reach the server. Check your connection and try again.",
+    "sessionClosed": "The host closed this game.",
+    "notEnoughPlayers": "At least 2 players are needed to start.",
+    "onlineUnavailable": "Multi-device play isn't configured on this deployment."
+  },
+  "setup": {
+    "back": "Back",
+    "modeTitle": "How do you want to play?",
+    "local": {
+      "title": "Single device",
+      "description": "Pass one phone or laptop around. Everyone plays on this screen."
+    },
+    "online": {
+      "title": "Multiple devices",
+      "description": "Every player joins from their own phone with a game code."
+    },
+    "localTitle": "Single-device game",
+    "onlineTitle": "Multi-device game",
+    "host": {
+      "title": "Host a game",
+      "description": "Pick the rules and share a code with your friends."
+    },
+    "join": {
+      "title": "Join a game",
+      "description": "Enter the code shown on the host's screen."
+    },
+    "category": "Category",
+    "players": "Players",
+    "playerNameLabel": "Player {n} name",
+    "defaultPlayerName": "Player {n}",
+    "winningScore": "Points to win",
+    "winningScoreHint": "First player to place this many items correctly wins.",
+    "contentSet": "Content",
+    "start": "Start game",
+    "yourName": "Your name",
+    "yourNamePlaceholder": "e.g. Alex",
+    "createGame": "Create game",
+    "creating": "Creating…",
+    "gameCode": "Game code",
+    "gameCodeHint": "6 characters, letters and numbers.",
+    "joinGame": "Join game",
+    "joining": "Joining…"
+  },
+  "category": {
+    "songs": "Songs",
+    "movies": "Movies",
+    "shows": "TV shows",
+    "all": "Mixed"
+  },
+  "contentSet": {
+    "everything": "Everything",
+    "english": "English",
+    "spanish": "Spanish",
+    "new": "Recent (2010+)"
+  },
+  "lobby": {
+    "hostTitle": "Share this code",
+    "guestTitle": "You're in!",
+    "copy": "Copy code",
+    "copyLink": "Copy invite link",
+    "copied": "Copied",
+    "copyFailed": "Couldn't copy",
+    "players": "Players ({count})",
+    "you": "You",
+    "host": "Host",
+    "waitingForPlayers": "Waiting for players to join…",
+    "needMore": "You need at least 2 players to start.",
+    "waitingForHost": "Waiting for the host to start the game…",
+    "start": "Start game",
+    "starting": "Starting…",
+    "leave": "Leave",
+    "summary": "{category} · {score} points · {contentSet}"
+  },
+  "media": {
+    "song": "Song",
+    "movie": "Movie",
+    "show": "TV show",
+    "mystery": {
+      "song": "Mystery song",
+      "movie": "Mystery movie",
+      "show": "Mystery TV show"
+    },
+    "sceneAlt": "A scene from the mystery title",
+    "coverAlt": "Artwork for {title}",
+    "imageLoading": "Loading image…",
+    "imageError": "The image could not be loaded."
+  },
+  "player": {
+    "play": "Play preview",
+    "pause": "Pause",
+    "resume": "Resume",
+    "replay": "Play again",
+    "retry": "Try again",
+    "status": {
+      "idle": "Press play to listen",
+      "loading": "Loading…",
+      "playing": "Playing",
+      "paused": "Paused",
+      "ended": "Preview finished",
+      "error": "This preview couldn't be played."
+    }
+  },
+  "game": {
+    "yourTurn": "Your turn",
+    "turnOf": "{name}'s turn",
+    "turnOfLocal": "{name}, it's your turn",
+    "connecting": "Connecting to the game…",
+    "preparing": "Preparing the next item…",
+    "placePrompt": "Where does it go in your timeline?",
+    "waitingForPlacement": "Waiting for {name} to place it…",
+    "correct": "Correct!",
+    "wrong": "Not quite",
+    "correctFor": "{name} placed it correctly.",
+    "wrongFor": "{name} missed this one.",
+    "nextTurn": "Next turn",
+    "nextUp": "Next up: {name}",
+    "waitingForNext": "Waiting for {name} to continue…"
+  },
+  "placement": {
+    "first": "Place as first item",
+    "before": "Before {year}",
+    "between": "{from} – {to}",
+    "after": "After {year}",
+    "kind": {
+      "first": "Start",
+      "before": "Before",
+      "between": "Between",
+      "after": "After"
+    }
+  },
+  "timeline": {
+    "title": "Timelines",
+    "empty": "No items yet",
+    "score": "{score} / {target}",
+    "current": "Playing",
+    "you": "You"
+  },
+  "gameOver": {
+    "title": "Game over",
+    "winner": "{name} wins!",
+    "tie": "It's a tie!",
+    "deckExhausted": "The deck ran out of items.",
+    "scoreReached": "First to {target} points.",
+    "finalScores": "Final scores",
+    "winningTimeline": "Winning timeline",
+    "playAgain": "Play again",
+    "newGame": "New game"
+  }
+}

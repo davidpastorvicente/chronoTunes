@@ -1,56 +1,31 @@
-import { useState } from 'react'
-import GameSetup from './components/GameSetup'
-import MultiplayerGameBoard from './components/MultiplayerGameBoard'
-import LanguageSelector from './components/LanguageSelector'
-import ThemeToggle from './components/ThemeToggle'
-import AuthGuard from './components/AuthGuard'
-import './App.css'
+import { useCallback, useReducer } from 'react';
+import { appMachine, createApp } from './machines/appMachine';
+import PreferencesProvider from './preferences/PreferencesProvider';
+import AuthGate from './components/AuthGate';
+import SetupScreen from './components/setup/SetupScreen';
+import GameScreen from './components/game/GameScreen';
 
-function App() {
-  const [gameStarted, setGameStarted] = useState(false)
-  const [gameConfig, setGameConfig] = useState(null)
-  const [turnIndicator, setTurnIndicator] = useState(null)
-  
-  // Initialize language from localStorage or default to 'es'
-  const [language, setLanguage] = useState(() => {
-    return localStorage.getItem('chronotunes_language') || 'es'
-  })
-
-  // Persist language preference
-  const handleLanguageChange = (newLanguage) => {
-    setLanguage(newLanguage)
-    localStorage.setItem('chronotunes_language', newLanguage)
-  }
-
-  const handleStartGame = (config) => {
-    // Config contains: mode, playerNames, winningScore, songSet
-    // For multiplayer: also gameCode, myPlayerIndex, deviceId, isHost
-    setGameConfig(config)
-    setGameStarted(true)
-  }
+/** Screen flow is `appMachine`: setup → game → (RESTART | EXIT). */
+export default function App() {
+  const [app, dispatch] = useReducer(appMachine.transition, undefined, createApp);
+  const startGame = useCallback((config) => dispatch({ type: 'START_GAME', config }), []);
+  const restart = useCallback(() => dispatch({ type: 'RESTART' }), []);
+  const exit = useCallback(() => dispatch({ type: 'EXIT' }), []);
 
   return (
-    <AuthGuard language={language} onLanguageChange={handleLanguageChange}>
-      <div className="app">
-        <div className="top-controls">
-          {turnIndicator}
-          <div className="top-controls-right">
-            <LanguageSelector currentLanguage={language} onLanguageChange={handleLanguageChange} />
-            <ThemeToggle />
-          </div>
-        </div>
-        {!gameStarted ? (
-          <GameSetup onStartGame={handleStartGame} language={language} />
-        ) : (
-          <MultiplayerGameBoard 
-            gameConfig={gameConfig}
-            language={language}
-            onTurnIndicatorChange={setTurnIndicator}
+    <PreferencesProvider>
+      <AuthGate>
+        {app.value === 'game' ? (
+          <GameScreen
+            key={app.round}
+            config={app.config}
+            onRestart={app.config.mode === 'local' ? restart : undefined}
+            onExit={exit}
           />
+        ) : (
+          <SetupScreen onStart={startGame} />
         )}
-      </div>
-    </AuthGuard>
-  )
+      </AuthGate>
+    </PreferencesProvider>
+  );
 }
-
-export default App

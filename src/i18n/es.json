@@ -1,0 +1,174 @@
+{
+  "app": {
+    "name": "ChronoTunes",
+    "tagline": "Escúchalo, míralo, colócalo. Construye tu cronología canción a canción, película a película."
+  },
+  "nav": {
+    "language": "Idioma",
+    "themeToDark": "Cambiar a modo oscuro",
+    "themeToLight": "Cambiar a modo claro",
+    "exit": "Salir del juego",
+    "exitConfirm": "¿Salir de esta partida? Se perderá el progreso."
+  },
+  "auth": {
+    "title": "Partida privada",
+    "subtitle": "Introduce la contraseña para continuar.",
+    "label": "Contraseña",
+    "submit": "Entrar"
+  },
+  "errors": {
+    "wrongPassword": "Contraseña incorrecta. Inténtalo de nuevo.",
+    "authNotConfigured": "La autenticación no está configurada en este despliegue.",
+    "nameRequired": "Escribe tu nombre para continuar.",
+    "invalidCode": "Los códigos de juego tienen 6 caracteres.",
+    "gameNotFound": "No hay ninguna partida con ese código.",
+    "gameStarted": "Esa partida ya ha empezado.",
+    "network": "No se pudo conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.",
+    "sessionClosed": "El anfitrión cerró la partida.",
+    "notEnoughPlayers": "Se necesitan al menos 2 jugadores para empezar.",
+    "onlineUnavailable": "El modo multidispositivo no está configurado en este despliegue."
+  },
+  "setup": {
+    "back": "Atrás",
+    "modeTitle": "¿Cómo queréis jugar?",
+    "local": {
+      "title": "Un dispositivo",
+      "description": "Pasaos un móvil o portátil. Todos juegan en esta pantalla."
+    },
+    "online": {
+      "title": "Varios dispositivos",
+      "description": "Cada jugador se une desde su móvil con un código."
+    },
+    "localTitle": "Partida en un dispositivo",
+    "onlineTitle": "Partida multidispositivo",
+    "host": {
+      "title": "Crear partida",
+      "description": "Elige las reglas y comparte un código con tus amigos."
+    },
+    "join": {
+      "title": "Unirse a una partida",
+      "description": "Introduce el código que aparece en la pantalla del anfitrión."
+    },
+    "category": "Categoría",
+    "players": "Jugadores",
+    "playerNameLabel": "Nombre del jugador {n}",
+    "defaultPlayerName": "Jugador {n}",
+    "winningScore": "Puntos para ganar",
+    "winningScoreHint": "Gana quien coloque primero este número de elementos correctamente.",
+    "contentSet": "Contenido",
+    "start": "Empezar",
+    "yourName": "Tu nombre",
+    "yourNamePlaceholder": "p. ej. Alex",
+    "createGame": "Crear partida",
+    "creating": "Creando…",
+    "gameCode": "Código de juego",
+    "gameCodeHint": "6 caracteres, letras y números.",
+    "joinGame": "Unirse",
+    "joining": "Uniéndote…"
+  },
+  "category": {
+    "songs": "Canciones",
+    "movies": "Películas",
+    "shows": "Series",
+    "all": "Mix"
+  },
+  "contentSet": {
+    "everything": "Todo",
+    "english": "Inglés",
+    "spanish": "Español",
+    "new": "Recientes (2010+)"
+  },
+  "lobby": {
+    "hostTitle": "Comparte este código",
+    "guestTitle": "¡Estás dentro!",
+    "copy": "Copiar código",
+    "copyLink": "Copiar enlace",
+    "copied": "Copiado",
+    "copyFailed": "No se pudo copiar",
+    "players": "Jugadores ({count})",
+    "you": "Tú",
+    "host": "Anfitrión",
+    "waitingForPlayers": "Esperando a que se unan jugadores…",
+    "needMore": "Necesitas al menos 2 jugadores para empezar.",
+    "waitingForHost": "Esperando a que el anfitrión empiece la partida…",
+    "start": "Empezar partida",
+    "starting": "Empezando…",
+    "leave": "Salir",
+    "summary": "{category} · {score} puntos · {contentSet}"
+  },
+  "media": {
+    "song": "Canción",
+    "movie": "Película",
+    "show": "Serie",
+    "mystery": {
+      "song": "Canción misteriosa",
+      "movie": "Película misteriosa",
+      "show": "Serie misteriosa"
+    },
+    "sceneAlt": "Una escena del título misterioso",
+    "coverAlt": "Portada de {title}",
+    "imageLoading": "Cargando imagen…",
+    "imageError": "No se pudo cargar la imagen."
+  },
+  "player": {
+    "play": "Reproducir",
+    "pause": "Pausar",
+    "resume": "Continuar",
+    "replay": "Volver a escuchar",
+    "retry": "Reintentar",
+    "status": {
+      "idle": "Pulsa reproducir para escuchar",
+      "loading": "Cargando…",
+      "playing": "Reproduciendo",
+      "paused": "En pausa",
+      "ended": "Fin del fragmento",
+      "error": "No se pudo reproducir este fragmento."
+    }
+  },
+  "game": {
+    "yourTurn": "Tu turno",
+    "turnOf": "Turno de {name}",
+    "turnOfLocal": "{name}, te toca",
+    "connecting": "Conectando con la partida…",
+    "preparing": "Preparando el siguiente elemento…",
+    "placePrompt": "¿Dónde va en tu cronología?",
+    "waitingForPlacement": "Esperando a que {name} lo coloque…",
+    "correct": "¡Correcto!",
+    "wrong": "Casi",
+    "correctFor": "{name} lo colocó bien.",
+    "wrongFor": "{name} falló esta vez.",
+    "nextTurn": "Siguiente turno",
+    "nextUp": "Siguiente: {name}",
+    "waitingForNext": "Esperando a que {name} continúe…"
+  },
+  "placement": {
+    "first": "Colocar como primero",
+    "before": "Antes de {year}",
+    "between": "{from} – {to}",
+    "after": "Después de {year}",
+    "kind": {
+      "first": "Empieza",
+      "before": "Antes de",
+      "between": "Entre",
+      "after": "Después de"
+    }
+  },
+  "timeline": {
+    "title": "Cronologías",
+    "empty": "Aún no hay elementos",
+    "score": "{score} / {target}",
+    "current": "Jugando",
+    "you": "Tú"
+  },
+  "gameOver": {
+    "title": "Fin de la partida",
+    "winner": "¡Gana {name}!",
+    "tie": "¡Empate!",
+    "deckExhausted": "No quedan más elementos en la baraja.",
+    "scoreReached": "El primero en llegar a {target} puntos.",
+    "finalScores": "Puntuación final",
+    "winningTimeline": "Cronología ganadora",
+    "playAgain": "Jugar otra vez",
+    "newGame": "Nueva partida"
+  }
+}
