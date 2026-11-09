@@ -1,4 +1,4 @@
-[![Deploy to GitHub Pages](https://github.com/davidpastorvicente/chronotunes/actions/workflows/deploy.yml/badge.svg?branch=master)](https://github.com/davidpastorvicente/chronotunes/actions/workflows/deploy.yml)
+[![Deploy to GitHub Pages](https://github.com/davidpastorvicente/chronotunes/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/davidpastorvicente/chronotunes/actions/workflows/deploy.yml)
 
 # ChronoTunes
 
@@ -101,7 +101,7 @@ clipboard on secure origins); everything else works.
 
 ### Deployment
 
-Pushing to `master` runs `.github/workflows/deploy.yml`: lint, tests, build,
+Pushing to `main` runs `.github/workflows/deploy.yml`: lint, tests, build,
 then deploy to GitHub Pages under `/chronotunes/`. Configure these repository
 secrets: `FIREBASE_API_KEY`, `FIREBASE_AUTH_DOMAIN`, `FIREBASE_DATABASE_URL`,
 `FIREBASE_PROJECT_ID`, `FIREBASE_STORAGE_BUCKET`, `FIREBASE_MESSAGING_SENDER_ID`,
