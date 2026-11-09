@@ -4,20 +4,22 @@
 
 A timeline guessing game where players build chronological timelines by placing items in order. Play with songs, movies, or TV shows!
 
-![ChronoTunes Logo](screenshots/light-en.png)
+![ChronoTunes home screen](screenshots/light-en.png)
 
 ## 🎮 How to Play
 
-1. **Choose Category**: Select between Songs, Movies, or TV Shows
-2. **Setup Players**: Choose 2-6 players and set a winning score (5, 10, 15, or 20 items)
+1. **Choose Category**: Songs, Movies, TV Shows, or Mixed (all three interleaved)
+2. **Setup Players**: Play on one shared device (1-6 players) or on several devices with a game code / invite link, and set a winning score (5, 10, 15, or 20 items)
 3. **Experience**: Each turn, a player experiences a mystery item (song audio or movie/show image)
 4. **Guess**: Place the item in your timeline by its year (before, between, or after existing items)
 5. **Build**: Correct placements add the item to your timeline
-6. **Win**: First player to reach the target number of items wins!
+6. **Win**: First player to reach the target number of items wins! If the deck runs out first, the leader wins (or it's a tie).
 
 ## 📚 Content Library
 
 ### 🎵 Music
+
+503 songs (276 English, 227 Spanish), 251 movies and 249 TV shows.
 
 **English Songs:**
 - 1960s-1990s: Classic hits from The Beatles, Queen, Michael Jackson, Nirvana
@@ -37,43 +39,86 @@ A timeline guessing game where players build chronological timelines by placing 
 - Mix of blockbusters, critically acclaimed films, and popular TV shows
 
 **Spanish Movies/Shows:**
-- Spanish cinema and television from Spain specifically
-- Filtered by origin country to ensure authentic Spanish content
+- Spanish-language cinema and television (TMDB `original_language=es`, ES region)
 
 ## 🎧 Media Playback
 
 **For Songs:**
-- **Deezer API**: ~99% of songs play ad-free 30-second previews via Deezer
-- **YouTube Fallback**: Remaining songs use YouTube embed (may show ads)
+- **Deezer API**: every song has a Deezer ID and plays an ad-free 30-second preview with a progress bar
+- **YouTube Fallback**: if Deezer has no preview for a track or doesn't answer within 5 s, a hidden YouTube embed plays instead (may show ads)
 - Preview URLs are fetched dynamically at runtime for freshness
-- CORS proxy fallback chain ensures reliability
+- Deezer is called directly from the browser via **JSONP** (`api.deezer.com/track/{id}?output=jsonp`).
+  The Deezer API sends no CORS headers and the app has no backend, so a normal `fetch()` would be
+  blocked; JSONP needs no CORS and no third-party proxy (the public CORS proxies used before stopped working).
+  See `src/utils/deezer.js` and `src/utils/jsonp.js`.
 
 **For Movies/TV Shows:**
 - **Backdrop Images**: Scene stills shown during guessing phase (harder to identify)
 - **Poster Images**: Official posters shown on reveal (clear identification)
-- Images fetched from TMDB API with permanent URLs
+- Images come from TMDB with permanent URLs; the app requests resized renditions (`w1280` backdrops, `w342` posters) instead of the multi-MB originals
 
 ## 🚀 Getting Started
 
+Requires Node.js 22.22+ or 24.15+ (see `.nvmrc`).
+
 ```bash
-# Install dependencies
 npm install
-
-# Start development server
-npm run dev
-
-# Open browser to http://localhost:5173
+cp .env.example .env   # optional: only needed for the password gate and multi-device mode
+npm run dev            # http://localhost:5173/chronotunes/
 ```
+
+Single-device play works without any configuration. Multi-device play needs the
+`VITE_FIREBASE_*` variables (see `.env.example` and the Firebase section below);
+without them the option is shown as unavailable.
+
+**Testing multi-device on real phones:** run `npm run dev -- --host` and open the
+printed Network URL (e.g. `http://192.168.1.20:5173/chronotunes/`) on each phone.
+Over plain HTTP the "Copy" buttons may be unavailable (browsers only expose the
+clipboard on secure origins); everything else works.
+
+### Multi-device setup (Firebase)
+
+1. Create a Firebase project and a **Realtime Database**.
+2. Register a web app and copy its config into `.env` (`VITE_FIREBASE_*`).
+3. Database rules: the app has no user accounts, so clients need read/write
+   access to `games/`. For example:
+   ```json
+   { "rules": { "games": { "$code": { ".read": true, ".write": true } } } }
+   ```
+   Sessions are stored at `games/{CODE}`; see `AGENTS.md` for the layout.
+
+## 🧑‍💻 Development
+
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Vite dev server with HMR |
+| `npm test` | Unit, component and integration tests (Vitest + Testing Library) |
+| `npm run test:watch` | Tests in watch mode |
+| `npm run test:coverage` | Tests with a V8 coverage report (`coverage/`) |
+| `npm run lint` | ESLint |
+| `npm run docs:machines` | Regenerate `docs/state-machines.md` from the machine definitions |
+| `npm run check` | Lint + tests + production build (run this before pushing) |
+
+### Deployment
+
+Pushing to `master` runs `.github/workflows/deploy.yml`: lint, tests, build,
+then deploy to GitHub Pages under `/chronotunes/`. Configure these repository
+secrets: `FIREBASE_API_KEY`, `FIREBASE_AUTH_DOMAIN`, `FIREBASE_DATABASE_URL`,
+`FIREBASE_PROJECT_ID`, `FIREBASE_STORAGE_BUCKET`, `FIREBASE_MESSAGING_SENDER_ID`,
+`FIREBASE_APP_ID` and `APP_PASSWORD`. The workflow currently builds with
+`VITE_DISABLE_AUTH: true`, so the password gate is **off** on the deployed site;
+set it to `false` to enable it.
 
 ## 🛠 Tech Stack
 
 - **React** - UI framework
 - **Vite** - Build tool & dev server
 - **Firebase Realtime Database** - Multi-device sync
-- **Deezer API** - Ad-free audio previews (30 seconds)
+- **Deezer API** - Ad-free audio previews (30 seconds), loaded via JSONP
 - **TMDB API** - Movie/TV show data and images
 - **YouTube Embeds** - Fallback audio playback
-- **CSS3** - Modern styling with theme system
+- **Vitest + Testing Library** - Tests
+- **CSS custom properties** - "Genesis" design tokens (see `DESIGN.md`) with light/dark themes
 
 ## 🎯 Content Sources
 
@@ -92,11 +137,16 @@ npm run dev
 
 ## 🔧 Key Features
 
-### Color-Coded Timelines
-- Each player gets a unique shuffled color sequence (8 colors)
-- Colors assigned per-item, not per-position
-- Item colors remain stable even when timeline reorders
-- Uses seeded Fisher-Yates shuffle with Linear Congruential Generator (LCG)
+### Explicit State Machines
+- All non-trivial state (screens, password gate, setup wizard, gameplay, audio player) is an explicit, pure state machine in `src/machines/`
+- The **same game machine** runs single-device games (`useReducer`) and multi-device games (inside Firebase transactions), so the rules can't drift apart
+- Events a state doesn't accept are ignored, so double clicks and stale devices can't corrupt a game
+- Diagrams in [`docs/state-machines.md`](docs/state-machines.md) are generated from the code and checked by a test
+
+### Design System
+- Built on the "Genesis" `DESIGN.md` (indigo accent, General Sans / DM Sans / JetBrains Mono, 4px grid, flat cards)
+- Accessible by default: native radio groups, labelled inputs, visible focus, `prefers-reduced-motion`, 44px touch targets
+- Light and dark themes, applied before first paint
 
 ### Media-Agnostic Architecture
 - Generic terminology: "items" instead of "songs"
@@ -114,12 +164,14 @@ npm run dev
 - ✅ Configurable winning conditions
 - ✅ **Content filtering**: Everything, English only, Spanish only, or Recent (2010+)
 - ✅ Hidden media (audio for songs, scene images for movies/shows)
-- ✅ Play/Pause controls for audio
-- ✅ Visual timeline display with color-coded cards
-- ✅ Per-item color stability (colors don't change between turns)
+- ✅ Play/Pause/Replay controls with a progress bar for audio previews
+- ✅ Placement "slots" showing the exact gap (before / between / after a year)
+- ✅ Timeline axis grouped by year with pastel colour-coded items; the item just placed is highlighted and scrolled into view
+- ✅ Invite links (`?join=CODE`) and live lobby
+- ✅ Remembers your settings and player names
 - ✅ Immediate feedback on correct/incorrect placements
 - ✅ Winner announcement with full timeline
-- ✅ Modern dark/light theme UI
+- ✅ Light/dark themes (follows the system on first visit)
 - ✅ Bilingual support (English/Spanish)
 
 ## 🎨 Customization
@@ -144,7 +196,7 @@ python3 scripts/fetch-movies.py shows --count 250
 The script will:
 - ✅ Fetch movies or TV shows from TMDB `/discover` endpoints
 - ✅ Use ES region filters with original language filtering
-- ✅ Apply date distribution: 5% pre-1990, 80% 1990-2020, 15% 2020+
+- ✅ Apply date distribution: 5% pre-1990, 80% 1990-2019, the rest 2020+
 - ✅ Include backdrop URLs (for hint phase) and poster URLs (for reveal phase)
 - ✅ Generate `src/data/movies.json` or `src/data/shows.json`
 - ✅ Include title, year, backdrop, poster, TMDB ID, type, and language fields
@@ -157,7 +209,7 @@ Check for duplicate songs in the database:
 python3 scripts/check-duplicates.py
 ```
 
-This will scan both English and Spanish song databases for:
+This will scan `src/data/songs.json` (English and Spanish songs) for:
 - 🔴 Duplicate Deezer IDs
 - 🔴 Duplicate YouTube IDs  
 - 🔴 Duplicate titles (case-insensitive)
@@ -280,31 +332,34 @@ For TV shows, use `"type": "show"` instead of `"movie"`.
 
 ```
 src/
+├── machines/          # Pure state machines (app, auth, setup, game, player) + docs generator
+├── game/              # Pure game logic: rules, deck drawing, Firebase session mapping
+├── hooks/             # React glue: useSetup, useLocalGame, useOnlineGame, useCopyToClipboard
+├── services/          # Firebase session API (transactions, subscriptions)
 ├── components/
-│   ├── GameSetup.jsx            # Player & category configuration
-│   ├── GameBoard.jsx            # Main game logic (single-device)
-│   ├── MultiplayerGameBoard.jsx # Multiplayer wrapper (Firebase sync)
-│   ├── Timeline.jsx             # Timeline display (color-coded cards)
-│   ├── MediaPlayer.jsx          # Routes to SongPlayer or ImageHint
-│   ├── SongPlayer.jsx           # Audio player for songs
-│   ├── ImageHint.jsx            # Image display for movies/shows
-│   └── PlacementButtons.jsx     # Placement controls
-├── data/
-│   ├── songs.json               # All songs (English + Spanish)
-│   ├── movies.json              # All movies (English + Spanish)
-│   └── shows.json               # All TV shows (English + Spanish)
-├── utils/
-│   ├── deezer.js                # Deezer API with CORS proxy fallback
-│   └── mediaLoader.js           # Media set creation and filtering
-├── services/
-│   └── gameSession.js           # Firebase operations
-├── translations.js              # English/Spanish translations
-└── App.jsx                      # Root component
+│   ├── ui/            # Design-system primitives (Button, ChoiceGroup, TextField, Icon, DotGrid)
+│   ├── setup/         # Setup wizard and lobby
+│   ├── game/          # Game screen, player, timeline, result, game over
+│   ├── AppHeader.jsx  # Sticky nav (status, language, theme)
+│   └── AuthGate.jsx   # Password gate
+├── i18n/              # en.json, es.json and translate()
+├── preferences/       # Language + theme provider
+├── styles/            # tokens.css (design tokens), base, components, screens
+├── utils/             # Deezer previews (JSONP), media loading, images, randomness
+├── data/              # songs.json, movies.json, shows.json
+├── test/              # Test setup and fixtures
+└── firebase.js        # Lazily loaded Firebase
+docs/state-machines.md # Generated state machine diagrams
+scripts/               # Python data-maintenance scripts + machine docs generator
+DESIGN.md              # Genesis design system (+ ChronoTunes adaptations)
+AGENTS.md              # Architecture and conventions for contributors and AI agents
 ```
+
+See [`AGENTS.md`](AGENTS.md) for architecture details and conventions.
 
 ## 🎯 No API Keys Required!
 
-This version uses a curated song list - just clone and play!
+Single-device play uses the curated lists in `src/data` - just clone and play!
 
 ---
 
