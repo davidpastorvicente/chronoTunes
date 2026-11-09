@@ -1,4 +1,4 @@
-[![Deploy to GitHub Pages](https://github.com/davidpastorvicente/chronotunes/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/davidpastorvicente/chronotunes/actions/workflows/deploy.yml)
+[![Deploy to GitHub Pages](https://github.com/davidpastorvicente/chronoTunes/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/davidpastorvicente/chronoTunes/actions/workflows/deploy.yml)
 
 # ChronoTunes
 
@@ -64,7 +64,7 @@ Requires Node.js 22.22+ or 24.15+ (see `.nvmrc`).
 ```bash
 npm install
 cp .env.example .env   # optional: only needed for the password gate and multi-device mode
-npm run dev            # http://localhost:5173/chronotunes/
+npm run dev            # http://localhost:5173/chronoTunes/
 ```
 
 Single-device play works without any configuration. Multi-device play needs the
@@ -72,7 +72,7 @@ Single-device play works without any configuration. Multi-device play needs the
 without them the option is shown as unavailable.
 
 **Testing multi-device on real phones:** run `npm run dev -- --host` and open the
-printed Network URL (e.g. `http://192.168.1.20:5173/chronotunes/`) on each phone.
+printed Network URL (e.g. `http://192.168.1.20:5173/chronoTunes/`) on each phone.
 Over plain HTTP the "Copy" buttons may be unavailable (browsers only expose the
 clipboard on secure origins); everything else works.
 
@@ -102,7 +102,7 @@ clipboard on secure origins); everything else works.
 ### Deployment
 
 Pushing to `main` runs `.github/workflows/deploy.yml`: lint, tests, build,
-then deploy to GitHub Pages under `/chronotunes/`. Configure these repository
+then deploy to GitHub Pages under `/chronoTunes/`. Configure these repository
 secrets: `FIREBASE_API_KEY`, `FIREBASE_AUTH_DOMAIN`, `FIREBASE_DATABASE_URL`,
 `FIREBASE_PROJECT_ID`, `FIREBASE_STORAGE_BUCKET`, `FIREBASE_MESSAGING_SENDER_ID`,
 `FIREBASE_APP_ID` and `APP_PASSWORD`. The workflow currently builds with

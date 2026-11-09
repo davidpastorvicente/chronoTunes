@@ -1,7 +1,7 @@
 # ChronoTunes — Agent Guide
 
 Timeline party game (songs, movies, TV shows). React 19 + Vite SPA deployed to
-GitHub Pages under `/chronotunes/`. Firebase Realtime Database powers optional
+GitHub Pages under `/chronoTunes/`. Firebase Realtime Database powers optional
 multi-device play.
 
 ## Commands
@@ -9,7 +9,7 @@ multi-device play.
 Node.js 22.22+ / 24.15+ (`.nvmrc`; CI uses it too).
 
 ```bash
-npm run dev            # http://localhost:5173/chronotunes/ (add `-- --host` to test on phones over LAN)
+npm run dev            # http://localhost:5173/chronoTunes/ (add `-- --host` to test on phones over LAN)
 npm test               # Vitest (unit + component + integration)
 npm run lint           # ESLint
 npm run docs:machines  # regenerate docs/state-machines.md (a test fails if stale)
