@@ -6,23 +6,22 @@ export default function SongPlayer({ song, language }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const audioRef = useRef(null);
-
+  const iframeRef = useRef(null);
+  
   const t = translations[language];
+  const isYouTube = song.previewUrl && song.previewUrl.includes('youtube');
 
-  // When the song changes, reset the UI and prefetch the new audio so playback
-  // is (near) instant when the user hits play. Setting preload="auto" plus an
-  // explicit load() tells the browser to start requesting /api/audio (which
-  // spawns yt-dlp on the server) right away, buffering ahead of the click.
   useEffect(() => {
-    setIsPlaying(false);
-    setIsPaused(false);
-    if (audioRef.current) {
+    if (audioRef.current && !isYouTube) {
       audioRef.current.load();
     }
-  }, [song]);
+  }, [song, isYouTube]);
 
   const handlePlayClick = () => {
-    if (audioRef.current) {
+    if (isYouTube) {
+      setIsPlaying(true);
+      setIsPaused(false);
+    } else if (audioRef.current) {
       audioRef.current.play();
       setIsPlaying(true);
       setIsPaused(false);
@@ -30,7 +29,17 @@ export default function SongPlayer({ song, language }) {
   };
 
   const togglePlayPause = () => {
-    if (audioRef.current) {
+    if (isYouTube) {
+      if (iframeRef.current) {
+        const iframe = iframeRef.current;
+        if (isPaused) {
+          iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+        } else {
+          iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+        }
+        setIsPaused(!isPaused);
+      }
+    } else if (audioRef.current) {
       if (isPaused) {
         audioRef.current.play();
       } else {
@@ -42,7 +51,18 @@ export default function SongPlayer({ song, language }) {
 
   return (
     <div className="song-player">
-      <audio ref={audioRef} src={song.previewUrl} preload="auto" />
+      {!isYouTube && <audio ref={audioRef} src={song.previewUrl} />}
+      {isYouTube && isPlaying && (
+        <iframe
+          ref={iframeRef}
+          width="0"
+          height="0"
+          src={`${song.previewUrl}&enablejsapi=1`}
+          title="Song Player"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          style={{ display: 'none' }}
+        />
+      )}
       {!isPlaying ? (
         <div className="play-button-container">
           <button className="play-button" onClick={handlePlayClick}>

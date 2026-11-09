@@ -6,13 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "serve": "npm run build && node server/index.js",
-    "server": "node server/index.js",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
-    "express": "^5.1.0",
     "firebase": "^12.8.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"

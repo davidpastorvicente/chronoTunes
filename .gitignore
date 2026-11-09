@@ -1,14 +1,3 @@
-# Dependencies
-node_modules
-
-# Python
-__pycache__/
-*.py[cod]
-
-# Build output
-dist
-dist-ssr
-
 # Logs
 logs
 *.log
@@ -18,10 +7,9 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Environment / secrets
-.env
-.env.*
-!.env.example
+node_modules
+dist
+dist-ssr
 *.local
 
 # Editor directories and files
@@ -34,6 +22,3 @@ lerna-debug.log*
 *.njsproj
 *.sln
 *.sw?
-
-# Local tooling / caches
-openspec/.vector-search.db*

@@ -24,18 +24,6 @@ export default defineConfig([
     },
     rules: {
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
-      // This app syncs external state (Firebase overrideState) and resets UI on
-      // prop changes inside effects, which is a legitimate use of setState in an
-      // effect. Disable the rule globally instead of scattering inline suppressions.
-      'react-hooks/set-state-in-effect': 'off',
-    },
-  },
-  {
-    files: ['server/**/*.js'],
-    languageOptions: {
-      ecmaVersion: 'latest',
-      sourceType: 'module',
-      globals: globals.node,
     },
   },
 ])

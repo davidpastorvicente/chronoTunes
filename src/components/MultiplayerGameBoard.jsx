@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { subscribeToGame, updateGameState, updatePlayerData, setHostDevice } from '../services/gameSession';
 import { translations } from '../translations';
-import { fetchAudioPreview } from '../utils/audio';
+import { fetchDeezerPreview } from '../utils/deezer';
 import { loadMediaByCategory } from '../utils/mediaLoader';
 import GameBoard from './GameBoard';
 import './MultiplayerGameBoard.css';
@@ -26,8 +26,8 @@ export default function MultiplayerGameBoard({ gameConfig, language, onTurnIndic
 
     let firstItem;
     if (item.type === 'song') {
-      // Resolve the YouTube/yt-dlp audio URL at runtime
-      const { previewUrl, albumCover } = await fetchAudioPreview(item);
+      // Fetch Deezer preview URL at runtime (they expire after ~24h)
+      const { previewUrl, albumCover } = await fetchDeezerPreview(item);
       firstItem = { ...item, previewUrl, albumCover };
     } else {
       firstItem = item;
@@ -249,8 +249,8 @@ function MultiplayerGameBoardActive({ gameConfig, gameData, language, onPlaceIte
 
     let nextItem;
     if (item.type === 'song') {
-      // Resolve the YouTube/yt-dlp audio URL at runtime
-      const { previewUrl, albumCover } = await fetchAudioPreview(item);
+      // Fetch Deezer preview URL at runtime (they expire after ~24h)
+      const { previewUrl, albumCover } = await fetchDeezerPreview(item);
       nextItem = { ...item, previewUrl, albumCover };
     } else {
       nextItem = item;

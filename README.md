@@ -1,3 +1,5 @@
+[![Deploy to GitHub Pages](https://github.com/davidpastorvicente/chronotunes/actions/workflows/deploy.yml/badge.svg?branch=master)](https://github.com/davidpastorvicente/chronotunes/actions/workflows/deploy.yml)
+
 # ChronoTunes
 
 A timeline guessing game where players build chronological timelines by placing items in order. Play with songs, movies, or TV shows!
@@ -41,10 +43,10 @@ A timeline guessing game where players build chronological timelines by placing 
 ## 🎧 Media Playback
 
 **For Songs:**
-- **YouTube via yt-dlp**: Audio is extracted server-side with `yt-dlp` and streamed
-  through a small Express backend (`server/index.js`), then played in a plain
-  `<audio>` element. Streaming through our own server avoids CORS issues.
-- Requires `yt-dlp` on `PATH` and the audio backend running (`npm run server`).
+- **Deezer API**: ~99% of songs play ad-free 30-second previews via Deezer
+- **YouTube Fallback**: Remaining songs use YouTube embed (may show ads)
+- Preview URLs are fetched dynamically at runtime for freshness
+- CORS proxy fallback chain ensures reliability
 
 **For Movies/TV Shows:**
 - **Backdrop Images**: Scene stills shown during guessing phase (harder to identify)
@@ -57,51 +59,29 @@ A timeline guessing game where players build chronological timelines by placing 
 # Install dependencies
 npm install
 
-# Make sure yt-dlp is installed and on PATH
-#   macOS:   brew install yt-dlp
-#   pip:     pip install -U yt-dlp
-
-# Start the app (Vite serves the frontend AND the yt-dlp audio API)
+# Start development server
 npm run dev
 
 # Open browser to http://localhost:5173
 ```
 
-> A single `npm run dev` process serves both the app and the `/api/audio`
-> endpoint (the yt-dlp streaming runs as Vite middleware in development).
-
-## 🌐 Deployment
-
-The frontend and the yt-dlp audio API run **together as one process** (a single
-origin, no CORS). Run it locally with Node, or build/run the Docker image:
-
-```bash
-# Node (builds the app, then serves it + /api/audio on one port)
-npm run serve                         # http://localhost:3001
-
-# Docker (same image)
-docker build -t chronotunes .
-docker run -p 3001:3001 chronotunes   # http://localhost:3001
-```
-
-Set the `VITE_*` Firebase variables in a `.env` file (they are baked into the
-frontend bundle at build time). `yt-dlp` and `ffmpeg` must be available (the
-Dockerfile installs both).
-
 ## 🛠 Tech Stack
 
 - **React** - UI framework
 - **Vite** - Build tool & dev server
-- **Express + yt-dlp** - Server-side YouTube audio extraction/streaming
 - **Firebase Realtime Database** - Multi-device sync
+- **Deezer API** - Ad-free audio previews (30 seconds)
 - **TMDB API** - Movie/TV show data and images
+- **YouTube Embeds** - Fallback audio playback
 - **CSS3** - Modern styling with theme system
 
 ## 🎯 Content Sources
 
 ### Songs
-- **Data structure**: Title, artist, year, youtubeId
-- **Playback**: YouTube audio extracted at runtime with `yt-dlp`
+- **Data structure**: Title, artist, year, YouTubeId, DeezerId
+- **Playback**: Deezer preview URLs (fetched at runtime, expire after 24h)
+- **Album covers**: Fetched at runtime from Deezer API
+- **Fallback**: YouTube embeds for songs without Deezer previews
 
 ### Movies/TV Shows
 - **Data structure**: Title, year, backdropUrl, posterUrl, tmdbId, type
@@ -178,12 +158,14 @@ python3 scripts/check-duplicates.py
 ```
 
 This will scan both English and Spanish song databases for:
+- 🔴 Duplicate Deezer IDs
 - 🔴 Duplicate YouTube IDs  
 - 🔴 Duplicate titles (case-insensitive)
 
-**When duplicate YouTube IDs are found**, the script automatically:
+**When duplicates are found**, the script automatically:
 1. Re-fetches the correct YouTube ID for each song (using `ytmusic.search()`)
-2. Shows you the new correct IDs
+2. Re-fetches the correct Deezer ID for each song (using Deezer search API)
+3. Shows you the new correct IDs
 
 **To automatically fix the files:**
 ```bash
@@ -191,6 +173,21 @@ python3 scripts/check-duplicates.py --fix
 ```
 
 This will update the data files with the correct IDs.
+
+### Validating Song Titles
+
+Validate that song titles in the database match Deezer API:
+
+```bash
+python3 scripts/check-titles.py
+```
+
+This will:
+- Fetch the actual title from Deezer API using each song's `deezerId`
+- Compare it with the title stored in the database
+- Flag any mismatches (ignoring accents, case, and special characters)
+
+**Note:** Some mismatches are acceptable (e.g., remaster notes, featured artists). The database intentionally keeps cleaner titles while Deezer includes extra metadata like "(Remastered 2015)" or "(feat. Artist)".
 
 ### Adding Songs from YouTube Playlists
 
@@ -214,7 +211,7 @@ The script will:
 - ✅ Clean titles by removing parentheses/brackets (done twice: before search and after receiving YouTube data)
 - ✅ Optionally process until N songs are successfully imported
 - ✅ Search for official YouTube video IDs (ensures best/canonical versions)
-- ✅ Get YouTube IDs and release years from YouTube Music
+- ✅ Get YouTube IDs, Deezer IDs, album covers, and years
 - ✅ Remove duplicates automatically
 - ✅ Append formatted songs to `src/data/songs.json` (sorted by year)
 
@@ -242,7 +239,8 @@ python3 scripts/update-ids.py
 
 The script will automatically:
 - ✅ Fetch YouTube IDs from YouTube Music API
-- ✅ Update the data file with the IDs
+- ✅ Fetch Deezer IDs from Deezer API (for ad-free playback)
+- ✅ Update the data files with both IDs
 
 ### Manual ID Entry
 
@@ -254,12 +252,13 @@ You can also add songs with IDs directly:
   "artist": "Artist Name",
   "year": 2024,
   "youtubeId": "youtube_video_id",
+  "deezerId": "deezer_track_id",
   "type": "song",
   "language": "en"
 }
 ```
 
-**Note:** Do NOT add `previewUrl` - it is resolved at runtime from `youtubeId`.
+**Note:** Do NOT add `albumCover` or `previewUrl` - these are fetched at runtime.
 
 For movies/TV shows:
 
@@ -295,16 +294,12 @@ src/
 │   ├── movies.json              # All movies (English + Spanish)
 │   └── shows.json               # All TV shows (English + Spanish)
 ├── utils/
-│   ├── audio.js                # Resolves the YouTube/yt-dlp audio URL
-│   └── mediaLoader.js          # Media set creation and filtering
+│   ├── deezer.js                # Deezer API with CORS proxy fallback
+│   └── mediaLoader.js           # Media set creation and filtering
 ├── services/
-│   └── gameSession.js          # Firebase operations
+│   └── gameSession.js           # Firebase operations
 ├── translations.js              # English/Spanish translations
 └── App.jsx                      # Root component
-
-server/
-├── index.js                     # Express server (prod: serves app + audio API)
-└── audioMiddleware.js           # yt-dlp audio streaming (used by Vite dev + Express)
 ```
 
 ## 🎯 No API Keys Required!

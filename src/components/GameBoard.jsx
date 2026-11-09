@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { translations } from '../translations';
-import { fetchAudioPreview } from '../utils/audio';
+import { fetchDeezerPreview } from '../utils/deezer';
 import { loadMediaByCategory } from '../utils/mediaLoader';
 import Timeline from './Timeline';
 import MediaPlayer from './MediaPlayer';
@@ -40,6 +40,7 @@ export default function GameBoard({ gameConfig, language, overrideState }) {
   // This synchronizes Firebase state to local state for multiplayer
   useEffect(() => {
     if (overrideState) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (overrideState.currentItem) setCurrentItem(overrideState.currentItem);
       if (overrideState.playerTimelines) setPlayerTimelines(overrideState.playerTimelines);
       if (overrideState.scores) setScores(overrideState.scores);
@@ -69,9 +70,9 @@ export default function GameBoard({ gameConfig, language, overrideState }) {
 
     let enrichedItem = { ...item };
 
-    // For songs, resolve the YouTube/yt-dlp audio URL at runtime
+    // For songs, fetch Deezer preview URL at runtime (they expire after ~24h)
     if (item.type === 'song') {
-      const { previewUrl, albumCover } = await fetchAudioPreview(item);
+      const { previewUrl, albumCover } = await fetchDeezerPreview(item);
       enrichedItem = { ...item, previewUrl, albumCover };
     }
     // For movies, backdrop URL is already in the data
@@ -92,6 +93,7 @@ export default function GameBoard({ gameConfig, language, overrideState }) {
   useEffect(() => {
     // Only initialize media in single-device mode
     if (!overrideState) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       void loadMedia();
     }
   }, [loadMedia, overrideState]);
