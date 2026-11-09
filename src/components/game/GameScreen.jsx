@@ -129,8 +129,7 @@ function Stage({ game, session }) {
 function TurnStatus({ game, session, online }) {
   const t = useT();
   const name = game.players[game.currentPlayerIndex]?.name ?? '';
-  let label = t('game.turnOf', { name });
-  if (online) label = session.canAct ? t('game.yourTurn') : t('game.turnOf', { name });
+  const label = online && session.canAct ? t('game.yourTurn') : t('game.turnOf', { name });
   return (
     <span className={`chip ${session.canAct && online ? 'chip-active' : ''}`} role="status">
       {label}

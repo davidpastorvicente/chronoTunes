@@ -6,29 +6,28 @@ const FLAGS = { en: '\u{1F1EC}\u{1F1E7}', es: '\u{1F1EA}\u{1F1F8}' };
 
 /**
  * Sticky top navigation (56px, backdrop blur). `status` renders in the centre
- * (e.g. whose turn it is) and `actions` before the preference controls.
+ * (e.g. whose turn it is) and `actions` after the preference controls.
+ * With `onHome`, the brand is a button that returns to the start screen.
  */
 export default function AppHeader({ status, actions, onHome }) {
   const t = useT();
   const { language, setLanguage, theme, toggleTheme } = usePreferences();
   const base = import.meta.env.BASE_URL;
+  const brand = (
+    <>
+      <img src={`${base}${theme === 'dark' ? 'logo-dark.svg' : 'logo.svg'}`} alt="" width="28" height="28" />
+      <BrandName name={t('app.name')} className="brand-name" />
+    </>
+  );
 
   return (
     <header className="app-header">
       <div className="app-header-inner container">
-        {(() => {
-          const content = (
-            <>
-              <img src={`${base}${theme === 'dark' ? 'logo-dark.svg' : 'logo.svg'}`} alt="" width="28" height="28" />
-              <BrandName name={t('app.name')} className="brand-name" />
-            </>
-          );
-          return onHome ? (
-            <button type="button" className="brand brand-link" onClick={onHome}>{content}</button>
-          ) : (
-            <div className="brand">{content}</div>
-          );
-        })()}
+        {onHome ? (
+          <button type="button" className="brand brand-link" onClick={onHome}>{brand}</button>
+        ) : (
+          <div className="brand">{brand}</div>
+        )}
 
         <div className="header-status">{status}</div>
 
