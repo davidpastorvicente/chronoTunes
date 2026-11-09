@@ -1,15 +1,19 @@
+import { jsonp } from './jsonp';
+
 /**
  * Resolves a playable preview for a song.
  *
  * Resolution chain (first success wins):
- *   1. Deezer API through each CORS proxy (5 s timeout each) → 30 s MP3 preview
- *   2. YouTube embed (may show ads, no progress info)
+ *   1. Deezer API via JSONP (`output=jsonp`) → 30 s MP3 preview + album cover.
+ *      Deezer sends no CORS headers, but JSONP needs none, so there is no
+ *      third-party CORS proxy to break or rate-limit us.
+ *   2. YouTube embed (may show ads, no progress info).
  *
  * Deezer preview URLs expire after ~24 h, so they are resolved at draw time
  * and never stored in `src/data`.
  */
 
-const CORS_PROXIES = ['https://corsproxy.io/?', 'https://cors.eu.org/'];
+const DEEZER_TRACK_URL = 'https://api.deezer.com/track/';
 const TIMEOUT_MS = 5000;
 
 export const youtubeEmbedUrl = (youtubeId) =>
@@ -17,26 +21,27 @@ export const youtubeEmbedUrl = (youtubeId) =>
 
 export const isYouTubeUrl = (url) => typeof url === 'string' && url.includes('youtube.com/');
 
-async function fetchDeezerTrack(deezerId, fetchImpl) {
-  for (const proxy of CORS_PROXIES) {
-    try {
-      const response = await fetchImpl(`${proxy}https://api.deezer.com/track/${deezerId}`, {
-        signal: AbortSignal.timeout(TIMEOUT_MS),
-      });
-      const data = await response.json();
-      if (data?.preview) return data;
-    } catch (error) {
-      console.warn(`[deezer] proxy ${proxy} failed:`, error.message);
-    }
+export const deezerTrackUrl = (deezerId) =>
+  `${DEEZER_TRACK_URL}${encodeURIComponent(deezerId)}?output=jsonp`;
+
+async function fetchDeezerTrack(deezerId, load) {
+  try {
+    const track = await load(deezerTrackUrl(deezerId), { timeout: TIMEOUT_MS });
+    if (track?.preview) return track;
+    console.warn(`[deezer] no preview for track ${deezerId}:`, track?.error?.message ?? 'empty response');
+  } catch (error) {
+    console.warn(`[deezer] track ${deezerId} failed:`, error.message);
   }
   return null;
 }
 
 /**
+ * @param {object} song item with `deezerId`, `youtubeId` and optional `albumCover`
+ * @param {typeof jsonp} [load] injectable loader (tests)
  * @returns {Promise<{ previewUrl: string, albumCover: string|null }>}
  */
-export async function fetchDeezerPreview(song, fetchImpl = globalThis.fetch) {
-  const track = song.deezerId ? await fetchDeezerTrack(song.deezerId, fetchImpl) : null;
+export async function fetchDeezerPreview(song, load = jsonp) {
+  const track = song.deezerId ? await fetchDeezerTrack(song.deezerId, load) : null;
   return {
     previewUrl: track?.preview ?? youtubeEmbedUrl(song.youtubeId),
     albumCover: song.albumCover ?? track?.album?.cover_medium ?? null,
