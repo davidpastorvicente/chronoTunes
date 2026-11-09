@@ -52,6 +52,7 @@ App (appMachine: setup → game)
 | Change setup steps | `src/machines/setupMachine.js`, `src/components/setup/` |
 | Change Firebase schema / writes | `src/game/session.js` (pure), `src/services/gameSession.js` (I/O) |
 | Change how items are drawn / previews | `src/game/deck.js`, `src/utils/deezer.js`, `src/utils/jsonp.js` (see "Song previews") |
+| Resume a game or lobby after a page reload | `src/game/savedGame.js` (`sessionStorage`; used by `App`, `useLocalGame` and `useSetup`) |
 | Add UI text | `src/i18n/en.json` **and** `src/i18n/es.json`, use `t('a.b', { param })` |
 | Styling | Tokens in `src/styles/tokens.css`; follow `DESIGN.md` (Genesis + "ChronoTunes adaptations") |
 | Timeline item colours | `.tone-*` in `tokens.css`, picked per item by `src/components/game/tones.js` |

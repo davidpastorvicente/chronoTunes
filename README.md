@@ -169,6 +169,7 @@ set it to `false` to enable it.
 - ✅ Timeline axis grouped by year with pastel colour-coded items; the item just placed is highlighted and scrolled into view
 - ✅ Invite links (`?join=CODE`) and live lobby
 - ✅ Remembers your settings and player names
+- ✅ Reloading the page resumes the game or lobby you were in (per browser tab)
 - ✅ Immediate feedback on correct/incorrect placements
 - ✅ Winner announcement with full timeline
 - ✅ Light/dark themes (follows the system on first visit)

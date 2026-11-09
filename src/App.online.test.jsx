@@ -148,6 +148,77 @@ describe('multi-device (integration, mocked Firebase)', () => {
     }
   });
 
+  it('reconnects to the same game after a page reload', async () => {
+    remote.doc = createSessionDoc({ settings, host: { id: 'host', name: 'Ana', deviceId: 'd1' } });
+    globalThis.history.replaceState(null, '', '/?join=ABC123');
+    const user = userEvent.setup();
+    const { unmount } = render(<App />);
+    await user.type(screen.getByLabelText('Your name'), 'Ben');
+    await user.click(screen.getByRole('button', { name: 'Join game' }));
+    await screen.findByText('Waiting for the host to start the game…');
+    await push(applySessionEvent(remote.doc, { type: 'START' }));
+    expect(await screen.findByText("Ana's turn")).toBeInTheDocument();
+
+    unmount();
+    remote.listeners.clear();
+    render(<App />);
+    expect(main()).toHaveAttribute('data-screen', 'game');
+    expect(await screen.findByText("Ana's turn")).toBeInTheDocument();
+    await push(applySessionEvent(remote.doc, { type: 'ITEM_DRAWN', item: movie(1990, '1') }));
+    expect(await screen.findByText(/waiting for ana to place it/i)).toBeInTheDocument();
+  });
+
+  it('reopens the host lobby after a page reload', async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(<App />);
+    await user.click(screen.getByRole('button', { name: /multiple devices/i }));
+    await user.click(screen.getByRole('button', { name: /host a game/i }));
+    await user.type(screen.getByLabelText('Your name'), 'Ana');
+    await user.click(screen.getByRole('button', { name: 'Create game' }));
+    expect(await screen.findByText('ABC123')).toBeInTheDocument();
+    services.deleteSession.mockClear();
+
+    unmount();
+    remote.listeners.clear();
+    render(<App />);
+    expect(main()).toHaveAttribute('data-step', 'hostLobby');
+    expect(screen.getByText('ABC123')).toBeInTheDocument();
+    expect(services.deleteSession).not.toHaveBeenCalled();
+
+    // Guests can still join and the host can start the same game.
+    await push(addPlayer(remote.doc, { id: 'guest', name: 'Ben', deviceId: 'd2' }));
+    expect(await screen.findByText('Ben')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Start game' }));
+    expect(await screen.findByText('Your turn')).toBeInTheDocument();
+  });
+
+  it('reopens the guest lobby after a page reload without joining twice', async () => {
+    remote.doc = createSessionDoc({ settings, host: { id: 'host', name: 'Ana', deviceId: 'd1' } });
+    globalThis.history.replaceState(null, '', '/?join=ABC123');
+    services.joinSession.mockClear();
+    const user = userEvent.setup();
+    const { unmount } = render(<App />);
+    await user.type(screen.getByLabelText('Your name'), 'Ben');
+    await user.click(screen.getByRole('button', { name: 'Join game' }));
+    await screen.findByText('Waiting for the host to start the game…');
+
+    unmount();
+    remote.listeners.clear();
+    const reloaded = render(<App />);
+    expect(main()).toHaveAttribute('data-step', 'guestLobby');
+    expect(await screen.findByText('Ben')).toBeInTheDocument();
+    expect(services.joinSession).toHaveBeenCalledTimes(1);
+    expect(remote.doc.players.map((p) => p.name)).toEqual(['Ana', 'Ben']);
+
+    // A lobby we are no longer part of is treated as closed.
+    reloaded.unmount();
+    remote.listeners.clear();
+    remote.doc = createSessionDoc({ settings, host: { id: 'other', name: 'Eve', deviceId: 'd3' } });
+    render(<App />);
+    expect(await screen.findByText('The host closed this game.')).toBeInTheDocument();
+    expect(main()).toHaveAttribute('data-step', 'joinForm');
+  });
+
   it('shows join errors from the service', async () => {
     services.joinSession.mockRejectedValueOnce(new (await import('./game/session')).SessionError('errors.gameStarted'));
     const user = userEvent.setup();

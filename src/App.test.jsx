@@ -79,6 +79,37 @@ describe('single-device game (integration)', () => {
     expect(screen.getByRole('radio', { name: 'Movies' })).toBeChecked();
   });
 
+  it('resumes the game after a page reload', async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(<App />);
+    await user.click(screen.getByRole('button', { name: /single device/i }));
+    await user.type(screen.getByLabelText('Player 1 name'), 'Ana');
+    await user.type(screen.getByLabelText('Player 2 name'), 'Ben');
+    await user.click(screen.getByRole('radio', { name: 'Movies' }));
+    await user.click(screen.getByRole('button', { name: 'Start game' }));
+    await user.click(await screen.findByRole('button', { name: 'Place as first item' }));
+    await user.click(screen.getByRole('button', { name: /next turn/i }));
+    expect(await screen.findByRole('button', { name: 'Place as first item' })).toBeInTheDocument();
+
+    // Reload: Ben's turn continues with the same item and Ana keeps her point.
+    unmount();
+    const reloaded = render(<App />);
+    expect(main()).toHaveAttribute('data-phase', 'playing');
+    expect(screen.getByRole('banner')).toHaveTextContent("Ben's turn");
+    expect(screen.getAllByText('1 / 10')).toHaveLength(1);
+    await user.click(screen.getByRole('button', { name: 'Place as first item' }));
+    expect(screen.getByText('Correct!')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /next turn/i }));
+    expect(await screen.findByRole('button', { name: 'Before 1990' })).toBeInTheDocument();
+
+    // After exiting, a reload starts from setup again.
+    await user.click(screen.getByRole('button', { name: 'Exit game' }));
+    await user.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Exit game' }));
+    reloaded.unmount();
+    render(<App />);
+    expect(main()).toHaveAttribute('data-step', 'chooseMode');
+  });
+
   it('returns to the mode selection when the brand is clicked in setup', async () => {
     const user = userEvent.setup();
     render(<App />);

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useReducer } from 'react';
 import { createSetup, sanitizeSettings, setupMachine } from '../machines/setupMachine';
-import { normalizePlayers, SessionError } from '../game/session';
+import { loadLobby, saveLobby } from '../game/savedGame';
+import { normalizePlayers, playerIndexOf, SessionError } from '../game/session';
 import { STORAGE_KEYS } from '../preferences/context';
 import {
   createSession,
@@ -20,7 +21,10 @@ const errorKey = (error) => {
   return 'errors.network';
 };
 
-/** Builds the initial setup from saved preferences and an optional `?join=CODE` invite link. */
+/**
+ * Builds the initial setup from saved preferences and either an optional
+ * `?join=CODE` invite link or the lobby this tab was in before a reload.
+ */
 function initSetup() {
   let saved = {};
   try {
@@ -38,6 +42,7 @@ function initSetup() {
     settings: sanitizeSettings(saved.settings),
     myName: typeof saved.myName === 'string' ? saved.myName : '',
     joinCode,
+    session: joinCode ? null : loadLobby(),
   });
 }
 
@@ -61,20 +66,25 @@ export function useSetup(onStart, defaultPlayerName) {
     localStorage.setItem(STORAGE_KEYS.setup, JSON.stringify({ settings: state.settings, myName: state.myName }));
   }, [state.settings, state.myName]);
 
+  // Remember the lobby so a page reload reopens it.
+  useEffect(() => saveLobby(lobbyCode ? session : null), [lobbyCode, session]);
+
   // Live lobby: player list, game start, or the host closing the game.
+  const lobbyPlayerId = lobbyCode ? session.playerId : null;
   useEffect(() => {
     if (!lobbyCode) return undefined;
     return subscribeToSession(
       lobbyCode,
       (doc) => {
-        if (!doc) return dispatch({ type: 'GONE' });
+        // Gone, or no longer ours (e.g. a reload after the code was reused).
+        if (!doc || playerIndexOf(doc, lobbyPlayerId) < 0) return dispatch({ type: 'GONE' });
         const payload = { players: normalizePlayers(doc.players), settings: doc.settings };
         const started = (doc.state?.gamePhase ?? 'waiting') !== 'waiting';
         dispatch({ type: started ? 'STARTED' : 'SESSION_UPDATED', ...payload });
       },
       (error) => dispatch({ type: 'FAILED', error: errorKey(error) }),
     );
-  }, [lobbyCode]);
+  }, [lobbyCode, lobbyPlayerId]);
 
   useEffect(() => {
     if (state.value === 'ready') onStart(state.config);

@@ -52,17 +52,21 @@ export function sanitizeSettings(raw) {
 }
 
 /**
- * @param {{ settings?: object, myName?: string, joinCode?: string }} [init]
+ * @param {{ settings?: object, myName?: string, joinCode?: string, session?: object }} [init]
  *   `joinCode` (from an invite link) opens the join form directly.
+ *   `session` (`{ code, playerId, isHost, settings }`, saved before a page
+ *   reload) reopens that lobby.
  */
-export function createSetup({ settings = {}, myName = '', joinCode = '' } = {}) {
+export function createSetup({ settings = {}, myName = '', joinCode = '', session = null } = {}) {
   const code = normalizeCode(joinCode);
+  let value = code ? 'joinForm' : 'chooseMode';
+  if (session) value = session.isHost ? 'hostLobby' : 'guestLobby';
   return {
-    value: code ? 'joinForm' : 'chooseMode',
+    value,
     settings: { ...DEFAULT_SETTINGS, ...settings },
     myName,
     joinCode: code,
-    session: null,
+    session: session && { ...session, players: [] },
     config: null,
     error: null,
   };

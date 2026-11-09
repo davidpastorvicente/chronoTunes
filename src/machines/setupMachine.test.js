@@ -90,6 +90,22 @@ describe('setupMachine', () => {
     expect(createSetup({ joinCode: 'abc123' })).toMatchObject({ value: 'joinForm', joinCode: 'ABC123' });
   });
 
+  it('reopens a saved lobby after a reload', () => {
+    const session = { code: 'ABC123', playerId: 'p1', settings: { category: 'movies', contentSet: 'everything', winningScore: 10 } };
+    expect(createSetup({ session: { ...session, isHost: true } })).toMatchObject({
+      value: 'hostLobby',
+      session: { ...session, isHost: true, players: [] },
+    });
+    const guest = createSetup({ session: { ...session, isHost: false } });
+    expect(guest.value).toBe('guestLobby');
+    expect(run(guest, { type: 'STARTED', players: [{ name: 'Ana' }, { name: 'Ben' }] }).config).toMatchObject({
+      mode: 'online',
+      gameCode: 'ABC123',
+      playerId: 'p1',
+      playerNames: ['Ana', 'Ben'],
+    });
+  });
+
   it('navigates back step by step', () => {
     const state = run(createSetup(), { type: 'CHOOSE_ONLINE' }, { type: 'JOIN' }, { type: 'BACK' }, { type: 'BACK' });
     expect(state.value).toBe('chooseMode');

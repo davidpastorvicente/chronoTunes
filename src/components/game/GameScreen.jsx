@@ -20,8 +20,8 @@ export default function GameScreen(props) {
   return props.config.mode === 'online' ? <OnlineGame {...props} /> : <LocalGame {...props} />;
 }
 
-function LocalGame({ config, onRestart, onExit }) {
-  return <GameView config={config} session={useLocalGame(config)} onRestart={onRestart} onExit={onExit} />;
+function LocalGame({ config, round, onRestart, onExit }) {
+  return <GameView config={config} session={useLocalGame(config, round)} onRestart={onRestart} onExit={onExit} />;
 }
 
 function OnlineGame({ config, onExit }) {
