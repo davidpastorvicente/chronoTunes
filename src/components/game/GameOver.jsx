@@ -16,7 +16,7 @@ export default function GameOver({ game, showTypeIcons, onRestart, onExit }) {
       <span className="icon-tile" aria-hidden="true"><Icon name="trophy" size={22} /></span>
       <p className="overline">{t('gameOver.title')}</p>
       <h1 id="game-over-title" className="heading-headline">
-        {winner ? t('gameOver.winner', { name: winner.name }) : t('gameOver.tie')}
+        {winner ? <WinnerTitle t={t} name={winner.name} /> : t('gameOver.tie')}
       </h1>
       <p className="text-secondary">
         {game.endReason === 'deckExhausted'
@@ -52,5 +52,17 @@ export default function GameOver({ game, showTypeIcons, onRestart, onExit }) {
         </Button>
       </div>
     </section>
+  );
+}
+
+function WinnerTitle({ t, name }) {
+  const marker = '\u0000';
+  const [before, after = ''] = t('gameOver.winner', { name: marker }).split(marker);
+  return (
+    <>
+      {before}
+      <span className="text-primary">{name}</span>
+      {after}
+    </>
   );
 }

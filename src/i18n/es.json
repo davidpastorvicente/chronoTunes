@@ -4,7 +4,7 @@
     "tagline": "Escúchalo, míralo, colócalo. Construye tu cronología canción a canción, película a película."
   },
   "nav": {
-    "language": "Idioma",
+    "switchLanguage": "Cambiar idioma",
     "themeToDark": "Cambiar a modo oscuro",
     "themeToLight": "Cambiar a modo claro",
     "exit": "Salir del juego",
@@ -128,15 +128,12 @@
   "game": {
     "yourTurn": "Tu turno",
     "turnOf": "Turno de {name}",
-    "turnOfLocal": "{name}, te toca",
     "connecting": "Conectando con la partida…",
     "preparing": "Preparando el siguiente elemento…",
     "placePrompt": "¿Dónde va en tu cronología?",
     "waitingForPlacement": "Esperando a que {name} lo coloque…",
     "correct": "¡Correcto!",
     "wrong": "Casi",
-    "correctFor": "{name} lo colocó bien.",
-    "wrongFor": "{name} falló esta vez.",
     "nextTurn": "Siguiente turno",
     "nextUp": "Siguiente: {name}",
     "waitingForNext": "Esperando a que {name} continúe…"
@@ -157,7 +154,6 @@
     "title": "Cronologías",
     "empty": "Aún no hay elementos",
     "score": "{score} / {target}",
-    "current": "Jugando",
     "you": "Tú"
   },
   "gameOver": {

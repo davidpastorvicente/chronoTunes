@@ -57,14 +57,17 @@ stateDiagram-v2
   localSetup --> localSetup: SET_PLAYER_NAME
   localSetup --> ready: START
   localSetup --> chooseMode: BACK
+  localSetup --> chooseMode: HOME
   onlineMenu --> hostSetup: HOST
   onlineMenu --> joinForm: JOIN
   onlineMenu --> chooseMode: BACK
+  onlineMenu --> chooseMode: HOME
   hostSetup --> hostSetup: UPDATE_SETTINGS
   hostSetup --> hostSetup: SET_NAME
   hostSetup --> creating: SUBMIT
   hostSetup --> hostSetup: SUBMIT
   hostSetup --> onlineMenu: BACK
+  hostSetup --> chooseMode: HOME
   creating --> hostLobby: CREATED
   creating --> hostSetup: FAILED
   hostLobby --> hostLobby: SESSION_UPDATED
@@ -74,6 +77,7 @@ stateDiagram-v2
   hostLobby --> hostLobby: FAILED
   hostLobby --> onlineMenu: GONE
   hostLobby --> onlineMenu: BACK
+  hostLobby --> chooseMode: HOME
   starting --> starting: SESSION_UPDATED
   starting --> ready: STARTED
   starting --> hostLobby: FAILED
@@ -83,6 +87,7 @@ stateDiagram-v2
   joinForm --> joining: SUBMIT
   joinForm --> joinForm: SUBMIT
   joinForm --> onlineMenu: BACK
+  joinForm --> chooseMode: HOME
   joining --> guestLobby: JOINED
   joining --> joinForm: FAILED
   guestLobby --> guestLobby: SESSION_UPDATED
@@ -90,21 +95,22 @@ stateDiagram-v2
   guestLobby --> guestLobby: FAILED
   guestLobby --> joinForm: GONE
   guestLobby --> onlineMenu: BACK
+  guestLobby --> chooseMode: HOME
   ready --> [*]
 ```
 
 | State | Description | Events |
 | --- | --- | --- |
 | `chooseMode` | Pick single-device or multi-device play. | `CHOOSE_LOCAL`, `CHOOSE_ONLINE` |
-| `localSetup` | Configure a pass-and-play game on this device. | `UPDATE_SETTINGS`, `SET_PLAYER_COUNT`, `SET_PLAYER_NAME`, `START`, `BACK` |
-| `onlineMenu` | Host a new game or join an existing one. | `HOST`, `JOIN`, `BACK` |
-| `hostSetup` | Host picks settings and their own name. | `UPDATE_SETTINGS`, `SET_NAME`, `SUBMIT`, `BACK` |
+| `localSetup` | Configure a pass-and-play game on this device. | `UPDATE_SETTINGS`, `SET_PLAYER_COUNT`, `SET_PLAYER_NAME`, `START`, `BACK`, `HOME` |
+| `onlineMenu` | Host a new game or join an existing one. | `HOST`, `JOIN`, `BACK`, `HOME` |
+| `hostSetup` | Host picks settings and their own name. | `UPDATE_SETTINGS`, `SET_NAME`, `SUBMIT`, `BACK`, `HOME` |
 | `creating` | Creating the session in Firebase. | `CREATED`, `FAILED` |
-| `hostLobby` | Host shares the code and waits for players. | `SESSION_UPDATED`, `STARTED`, `START`, `FAILED`, `GONE`, `BACK` |
+| `hostLobby` | Host shares the code and waits for players. | `SESSION_UPDATED`, `STARTED`, `START`, `FAILED`, `GONE`, `BACK`, `HOME` |
 | `starting` | Host asked Firebase to start; waiting for confirmation. | `SESSION_UPDATED`, `STARTED`, `FAILED`, `GONE` |
-| `joinForm` | Guest enters the game code and their name. | `SET_JOIN_CODE`, `SET_NAME`, `SUBMIT`, `BACK` |
+| `joinForm` | Guest enters the game code and their name. | `SET_JOIN_CODE`, `SET_NAME`, `SUBMIT`, `BACK`, `HOME` |
 | `joining` | Adding the guest to the Firebase session. | `JOINED`, `FAILED` |
-| `guestLobby` | Guest waits for the host to start. | `SESSION_UPDATED`, `STARTED`, `FAILED`, `GONE`, `BACK` |
+| `guestLobby` | Guest waits for the host to start. | `SESSION_UPDATED`, `STARTED`, `FAILED`, `GONE`, `BACK`, `HOME` |
 | `ready` | Setup finished; `config` describes the game to start. | — (final) |
 
 ## `game`

@@ -93,6 +93,8 @@ const toReady = (state, { players, settings }) => ({
   },
 });
 
+const goHome = { target: 'chooseMode', update: (state) => ({ ...state, session: null, error: null }) };
+
 const setMyName = (state, { value }) => ({ ...state, myName: value, error: null });
 
 export const setupMachine = createMachine({
@@ -146,6 +148,7 @@ export const setupMachine = createMachine({
           }),
         },
         BACK: 'chooseMode',
+        HOME: goHome,
       },
     },
     onlineMenu: {
@@ -154,6 +157,7 @@ export const setupMachine = createMachine({
         HOST: { target: 'hostSetup', update: clearError },
         JOIN: { target: 'joinForm', update: clearError },
         BACK: { target: 'chooseMode', update: clearError },
+        HOME: goHome,
       },
     },
     hostSetup: {
@@ -169,6 +173,7 @@ export const setupMachine = createMachine({
               : { ...state, value: 'hostSetup', error: 'errors.nameRequired' },
         },
         BACK: { target: 'onlineMenu', update: clearError },
+        HOME: goHome,
       },
     },
     creating: {
@@ -199,6 +204,7 @@ export const setupMachine = createMachine({
         FAILED: { target: 'hostLobby', update: (state, { error }) => ({ ...state, error }) },
         GONE: { target: 'onlineMenu', update: withError('errors.sessionClosed') },
         BACK: { target: 'onlineMenu', update: (state) => ({ ...state, session: null, error: null }) },
+        HOME: goHome,
       },
     },
     starting: {
@@ -227,6 +233,7 @@ export const setupMachine = createMachine({
           },
         },
         BACK: { target: 'onlineMenu', update: clearError },
+        HOME: goHome,
       },
     },
     joining: {
@@ -250,6 +257,7 @@ export const setupMachine = createMachine({
         FAILED: { target: 'guestLobby', update: (state, { error }) => ({ ...state, error }) },
         GONE: { target: 'joinForm', update: (state) => ({ ...state, session: null, error: 'errors.sessionClosed' }) },
         BACK: { target: 'onlineMenu', update: (state) => ({ ...state, session: null, error: null }) },
+        HOME: goHome,
       },
     },
     ready: {

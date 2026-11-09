@@ -32,7 +32,6 @@ export default function PlayersPanel({ game, myIndex = -1, showTypeIcons }) {
               <span className="avatar" aria-hidden="true">{initial(player.name)}</span>
               <h3 className="player-name">{player.name}</h3>
               {index === myIndex && <span className="chip">{t('timeline.you')}</span>}
-              {active && <span className="chip chip-active">{t('timeline.current')}</span>}
               <span className="player-score">{t('timeline.score', { score: player.score, target: game.winningScore })}</span>
             </div>
             <div className="progress" aria-hidden="true">

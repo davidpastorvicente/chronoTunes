@@ -418,6 +418,7 @@
 
 .result-art {
   flex: none;
+  align-self: flex-end;
   width: 104px;
   aspect-ratio: 2 / 3;
   object-fit: cover;
@@ -431,19 +432,40 @@
 }
 
 .result-info {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: repeat(3, auto) 1fr;
+  column-gap: var(--space-4);
+  row-gap: var(--space-1);
+  align-self: stretch;
   min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.result-info > :not(.result-badge, .result-year) {
+  grid-column: 1;
+  justify-self: start;
+}
+
+.result-badge {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: start;
+  justify-self: end;
 }
 
 .result-year {
-  margin-top: var(--space-2);
+  grid-column: 2;
+  grid-row: 1 / -1;
+  align-self: end;
+  justify-self: end;
+  line-height: 0.75;
+  text-box: trim-both cap alphabetic;
   font-family: var(--font-display);
   font-size: 2.5rem;
   font-weight: var(--weight-strong);
   font-variant-numeric: tabular-nums;
-  line-height: 1;
   letter-spacing: -0.04em;
 }
 
@@ -453,6 +475,30 @@
 
 .result.is-wrong .result-year {
   color: var(--color-error-text);
+}
+
+@media (max-width: 559px) {
+  .result-info {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+  }
+
+  .result-info > * {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .result-badge {
+    order: -1;
+    justify-self: start;
+    margin-bottom: var(--space-2);
+  }
+
+  .result-year {
+    grid-row: auto;
+    margin-top: auto;
+    justify-self: end;
+  }
 }
 
 /* Players */
@@ -473,7 +519,7 @@
 
 .player-card.is-active {
   border-color: var(--color-primary);
-  box-shadow: var(--ring);
+  box-shadow: 0 0 0 1px var(--color-primary), var(--ring);
 }
 
 .player-card-header {

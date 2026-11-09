@@ -25,10 +25,24 @@
   min-width: 0;
 }
 
+.brand-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.brand-accent,
+.text-primary {
+  color: var(--color-primary-text);
+}
+
 .brand-name {
   font-family: var(--font-display);
   font-weight: var(--weight-strong);
-  font-size: 1.0625rem;
+  font-size: 1.5625rem;
   letter-spacing: var(--tracking-heading);
 }
 
@@ -163,13 +177,7 @@
   background: var(--color-error-subtle);
 }
 
-.btn-icon {
-  width: 38px;
-  height: 38px;
-  padding: 0;
-}
-
-/* ---------- Segmented control (language) ---------- */
+/* ---------- Segmented control (header preferences) ---------- */
 .segmented {
   display: inline-flex;
   padding: 2px;
@@ -196,11 +204,6 @@
   color: var(--color-text);
 }
 
-.segmented-item[aria-pressed='true'] {
-  background: var(--color-primary-fill);
-  color: var(--color-on-primary);
-}
-
 /* ---------- Cards ---------- */
 .card {
   border: 1px solid var(--color-border);
@@ -218,7 +221,7 @@
   border-radius: var(--radius-md);
   background: var(--color-surface-alt);
   border: 1px solid var(--color-border);
-  color: var(--color-text);
+  color: var(--color-primary-text);
 }
 
 /* ---------- Chips ---------- */
@@ -298,6 +301,11 @@
   font-size: var(--text-small);
   font-weight: var(--weight-strong);
   color: var(--color-text);
+}
+
+legend.field-label {
+  padding: 0;
+  margin-bottom: var(--space-2);
 }
 
 .field-hint {
@@ -487,4 +495,21 @@
   background-image: radial-gradient(var(--color-dot-active) 1.25px, transparent 1.25px);
   mask-image: radial-gradient(180px circle at var(--mx, -999px) var(--my, -999px), black, transparent);
   -webkit-mask-image: radial-gradient(180px circle at var(--mx, -999px) var(--my, -999px), black, transparent);
+}
+
+.flag {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.segmented-item {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  padding: 0;
+  cursor: pointer;
+}
+
+.segmented-item:hover {
+  background: var(--color-surface-alt);
 }

@@ -37,6 +37,7 @@ function GameView({ config, session, onRestart, onExit }) {
   return (
     <>
       <AppHeader
+        onHome={finished || status === 'closed' ? onExit : undefined}
         status={game && !finished && <TurnStatus game={game} session={session} online={config.mode === 'online'} />}
         actions={!finished && <ExitButton onExit={onExit} />}
       />
@@ -105,13 +106,15 @@ function Stage({ game, session }) {
   if (game.value === 'result' && item && game.lastPlacement) {
     return (
       <>
-        <ResultCard item={item} correct={game.lastPlacement.correct} playerName={player.name} />
+        <ResultCard item={item} correct={game.lastPlacement.correct} />
         {canAct ? (
           <div className="actions">
             <Button variant="primary" size="lg" iconAfter="arrowRight" onClick={session.nextTurn} loading={busy}>
               {t('game.nextTurn')}
             </Button>
-            <span className="text-secondary">{t('game.nextUp', { name: nextPlayer.name })}</span>
+            {game.players.length > 1 && (
+              <span className="text-secondary">{t('game.nextUp', { name: nextPlayer.name })}</span>
+            )}
           </div>
         ) : (
           <WaitingNote label={t('game.waitingForNext', { name: player.name })} />
@@ -126,7 +129,7 @@ function Stage({ game, session }) {
 function TurnStatus({ game, session, online }) {
   const t = useT();
   const name = game.players[game.currentPlayerIndex]?.name ?? '';
-  let label = t('game.turnOfLocal', { name });
+  let label = t('game.turnOf', { name });
   if (online) label = session.canAct ? t('game.yourTurn') : t('game.turnOf', { name });
   return (
     <span className={`chip ${session.canAct && online ? 'chip-active' : ''}`} role="status">
@@ -154,15 +157,16 @@ function ExitButton({ onExit }) {
 
   if (!confirming) {
     return (
-      <Button
+      <button
         ref={triggerRef}
-        variant="ghost"
-        size="sm"
-        icon="logOut"
+        type="button"
+        className="segmented-item"
         onClick={() => setConfirming(true)}
         aria-label={t('nav.exit')}
         title={t('nav.exit')}
-      />
+      >
+        <Icon name="logOut" />
+      </button>
     );
   }
   return (

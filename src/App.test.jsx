@@ -36,7 +36,7 @@ describe('single-device game (integration)', () => {
 
     // Turn 1 — Ana places the 1990 movie into her empty timeline.
     await user.click(await screen.findByRole('button', { name: 'Place as first item' }));
-    expect(screen.getByRole('banner')).toHaveTextContent("Ana, it's your turn");
+    expect(screen.getByRole('banner')).toHaveTextContent("Ana's turn");
     expect(main()).toHaveAttribute('data-phase', 'result');
     expect(screen.getByText('Correct!')).toBeInTheDocument();
     expect(screen.getByText('Next up: Ben')).toBeInTheDocument();
@@ -79,10 +79,19 @@ describe('single-device game (integration)', () => {
     expect(screen.getByRole('radio', { name: 'Movies' })).toBeChecked();
   });
 
+  it('returns to the mode selection when the brand is clicked in setup', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole('button', { name: /single device/i }));
+    expect(main()).toHaveAttribute('data-step', 'localSetup');
+    await user.click(screen.getByRole('button', { name: 'ChronoTunes' }));
+    expect(main()).toHaveAttribute('data-step', 'chooseMode');
+  });
+
   it('switches language and theme from the header', async () => {
     const user = userEvent.setup();
     render(<App />);
-    await user.click(screen.getByRole('button', { name: 'ES' }));
+    await user.click(screen.getByRole('button', { name: 'Switch language' }));
     expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('¿Cómo queréis jugar?');
     expect(document.documentElement.lang).toBe('es');
 

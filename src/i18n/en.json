@@ -4,7 +4,7 @@
     "tagline": "Hear it, see it, place it. Build your timeline one song, movie or show at a time."
   },
   "nav": {
-    "language": "Language",
+    "switchLanguage": "Switch language",
     "themeToDark": "Switch to dark mode",
     "themeToLight": "Switch to light mode",
     "exit": "Exit game",
@@ -128,15 +128,12 @@
   "game": {
     "yourTurn": "Your turn",
     "turnOf": "{name}'s turn",
-    "turnOfLocal": "{name}, it's your turn",
     "connecting": "Connecting to the game…",
     "preparing": "Preparing the next item…",
     "placePrompt": "Where does it go in your timeline?",
     "waitingForPlacement": "Waiting for {name} to place it…",
     "correct": "Correct!",
     "wrong": "Not quite",
-    "correctFor": "{name} placed it correctly.",
-    "wrongFor": "{name} missed this one.",
     "nextTurn": "Next turn",
     "nextUp": "Next up: {name}",
     "waitingForNext": "Waiting for {name} to continue…"
@@ -157,7 +154,6 @@
     "title": "Timelines",
     "empty": "No items yet",
     "score": "{score} / {target}",
-    "current": "Playing",
     "you": "You"
   },
   "gameOver": {

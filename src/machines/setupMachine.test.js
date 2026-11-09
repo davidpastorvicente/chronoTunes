@@ -97,6 +97,29 @@ describe('setupMachine', () => {
   });
 });
 
+describe('HOME', () => {
+  it('returns to the mode selection from any step that can leave', () => {
+    const steps = [
+      [{ type: 'CHOOSE_LOCAL' }],
+      [{ type: 'CHOOSE_ONLINE' }],
+      [{ type: 'CHOOSE_ONLINE' }, { type: 'HOST' }],
+      [{ type: 'CHOOSE_ONLINE' }, { type: 'JOIN' }],
+      [{ type: 'CHOOSE_ONLINE' }, { type: 'HOST' }, { type: 'SET_NAME', value: 'Ana' }, { type: 'SUBMIT' }, { type: 'CREATED', code: 'ABC123', playerId: 'p0' }],
+    ];
+    for (const events of steps) {
+      const state = run(createSetup(), ...events, { type: 'HOME' });
+      expect(state).toMatchObject({ value: 'chooseMode', session: null, error: null });
+    }
+  });
+
+  it('is ignored on the first step and while a request is in flight', () => {
+    const initial = createSetup();
+    expect(run(initial, { type: 'HOME' })).toBe(initial);
+    const creating = run(initial, { type: 'CHOOSE_ONLINE' }, { type: 'HOST' }, { type: 'SET_NAME', value: 'Ana' }, { type: 'SUBMIT' });
+    expect(run(creating, { type: 'HOME' })).toBe(creating);
+  });
+});
+
 describe('normalizeCode', () => {
   it('uppercases, strips separators and truncates', () => {
     expect(normalizeCode(' ab-c 12 3x ')).toBe('ABC123');

@@ -3,8 +3,9 @@ import { MAX_LOCAL_PLAYERS, MAX_NAME_LENGTH } from '../../game/rules';
 import { useSetup } from '../../hooks/useSetup';
 import { GAME_CODE_LENGTH } from '../../machines/setupMachine';
 import { useT } from '../../preferences/context';
+import { deleteSession, leaveSession } from '../../services/gameSession';
 import { isFirebaseConfigured } from '../../firebase';
-import AppHeader from '../AppHeader';
+import AppHeader, { BrandName } from '../AppHeader';
 import Button from '../ui/Button';
 import ChoiceGroup from '../ui/ChoiceGroup';
 import DotGrid from '../ui/DotGrid';
@@ -30,14 +31,20 @@ export default function SetupScreen({ onStart }) {
     panelRef.current?.querySelector('h2')?.focus();
   }, [state.value]);
 
+  const goHome = () => {
+    if (state.value === 'hostLobby') void deleteSession(state.session.code).catch(() => {});
+    if (state.value === 'guestLobby') void leaveSession(state.session.code, state.session.playerId).catch(() => {});
+    actions.send({ type: 'HOME' });
+  };
+
   return (
     <>
-      <AppHeader />
+      <AppHeader onHome={goHome} />
       <main className="setup-screen" data-screen="setup" data-step={state.value}>
         <section className="hero">
           <DotGrid />
           <div className="container hero-inner">
-            <h1 className="heading-display">{t('app.name')}</h1>
+            <h1 className="heading-display"><BrandName name={t('app.name')} /></h1>
             <p className="hero-tagline">{t('app.tagline')}</p>
           </div>
         </section>
