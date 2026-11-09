@@ -3,7 +3,7 @@
 Fetch movies or TV shows from TMDB API using discover endpoints.
 Creates media database with title, year, and backdrop image URLs.
 Uses discover endpoints with certification_country, watch_region, and original_language filters.
-Outputs to separate files: src/data/movies/movies.json or src/data/shows/shows.json with language field.
+Outputs to src/data/movies.json or src/data/shows.json (one file per media type, with a language field).
 
 Usage:
     python3 scripts/fetch-movies.py movies [--count 250]
@@ -12,73 +12,56 @@ Usage:
 import os
 import sys
 import argparse
+import json
+from pathlib import Path
 
 import requests
-import json
-import sys
-from pathlib import Path
 
 # TMDB API Configuration
 TMDB_API_KEY = os.getenv("TMDB_API_KEY")
 TMDB_BASE_URL = "https://api.themoviedb.org/3"
 IMAGE_BASE_URL = "https://image.tmdb.org/t/p/original"
 
-def fetch_discover_movies(language="en-US", page=1, certification_country=None, watch_region=None, original_language=None, release_date_gte=None, release_date_lte=None):
-    """Fetch movies from TMDB discover endpoint with filters."""
-    url = f"{TMDB_BASE_URL}/discover/movie"
-    params = {
-        "api_key": TMDB_API_KEY,
-        "language": language,
-        "page": page,
-        "sort_by": "popularity.desc"
-    }
-    
-    if certification_country:
-        params["certification_country"] = certification_country
-    if watch_region:
-        params["watch_region"] = watch_region
-    if original_language:
-        params["with_original_language"] = original_language
-    if release_date_gte:
-        params["primary_release_date.gte"] = release_date_gte
-    if release_date_lte:
-        params["primary_release_date.lte"] = release_date_lte
-    
-    try:
-        response = requests.get(url, params=params, timeout=10)
-        response.raise_for_status()
-        return response.json().get("results", [])
-    except Exception as e:
-        print(f"Error fetching discover movies: {e}", file=sys.stderr)
-        return []
+# Per media type: TMDB discover endpoint and the name of its date filter.
+DISCOVER = {
+    "movies": {"endpoint": "movie", "date_field": "primary_release_date"},
+    "shows": {"endpoint": "tv", "date_field": "first_air_date"},
+}
 
-def fetch_discover_tv_shows(language="en-US", page=1, certification_country=None, watch_region=None, original_language=None, air_date_gte=None, air_date_lte=None):
-    """Fetch TV shows from TMDB discover endpoint with filters."""
-    url = f"{TMDB_BASE_URL}/discover/tv"
+# Eras to sample, in order: (label, share of the target, date_gte, date_lte, max_pages).
+# A share of None means "fill up to the full target".
+ERAS = [
+    ("before 1990", 0.05, None, "1989-12-31", 10),
+    ("1990-2019", 0.80, "1990-01-01", "2019-12-31", 20),
+    ("2020+", None, "2020-01-01", None, 10),
+]
+
+
+def fetch_discover(media_type, language="en-US", page=1, certification_country=None, watch_region=None,
+                   original_language=None, date_gte=None, date_lte=None):
+    """Fetch one page of movies or TV shows from the TMDB discover endpoint."""
+    config = DISCOVER[media_type]
     params = {
         "api_key": TMDB_API_KEY,
         "language": language,
         "page": page,
-        "sort_by": "popularity.desc"
+        "sort_by": "popularity.desc",
     }
-    
-    if certification_country:
-        params["certification_country"] = certification_country
-    if watch_region:
-        params["watch_region"] = watch_region
-    if original_language:
-        params["with_original_language"] = original_language
-    if air_date_gte:
-        params["first_air_date.gte"] = air_date_gte
-    if air_date_lte:
-        params["first_air_date.lte"] = air_date_lte
-    
+    optional = {
+        "certification_country": certification_country,
+        "watch_region": watch_region,
+        "with_original_language": original_language,
+        f"{config['date_field']}.gte": date_gte,
+        f"{config['date_field']}.lte": date_lte,
+    }
+    params.update({key: value for key, value in optional.items() if value})
+
     try:
-        response = requests.get(url, params=params, timeout=10)
+        response = requests.get(f"{TMDB_BASE_URL}/discover/{config['endpoint']}", params=params, timeout=10)
         response.raise_for_status()
         return response.json().get("results", [])
     except Exception as e:
-        print(f"Error fetching discover TV shows: {e}", file=sys.stderr)
+        print(f"Error fetching discover {media_type}: {e}", file=sys.stderr)
         return []
 
 def process_movie(movie_data, language='en'):
@@ -119,174 +102,55 @@ def process_tv_show(tv_data, language='en'):
         "language": language
     }
 
-def fetch_media_by_language(target_language, target_count=100):
+def fetch_media_by_language(target_language, media_type, target_count=100):
     """
-    Fetch movies and TV shows using discover endpoint with regional filters.
-    All content is from ES region (certification_country=ES, watch_region=ES),
+    Fetch movies or TV shows using the discover endpoint with regional filters.
+    All content is from the ES region (certification_country=ES, watch_region=ES),
     filtered by original_language.
-    Fetches: 5% from before 1990, 80% from 1990-2020, and 15% from 2020+.
-    
+    Fetches: 5% from before 1990, 80% from 1990-2019, and the rest from 2020+.
+
     Args:
         target_language: 'en' for English or 'es' for Spanish
+        media_type: 'movies' or 'shows'
         target_count: Number of items to fetch
     """
+    process = process_movie if media_type == "movies" else process_tv_show
+    api_language = "es-ES" if target_language == "es" else "en-US"
     all_media = []
     seen_ids = set()
-    
-    # Configure filters - ES region for all, only original_language differs
-    certification_country = 'ES'
-    watch_region = 'ES'
-    
-    if target_language == 'es':
-        api_language = 'es-ES'
-        original_language = 'es'
-        region_label = 'Spanish (ES region, original_language=es)'
-    else:  # English
-        api_language = 'en-US'
-        original_language = 'en'
-        region_label = 'English (ES region, original_language=en)'
-    
-    print(f"Fetching {region_label} movies and TV shows from TMDB...")
-    
-    # Phase 1: Fetch classic content (before 1990): 5% of target
-    classic_target = int(target_count * 0.05)
-    print(f"  Fetching {classic_target} items from before 1990...")
-    page = 1
-    max_pages = 10
-    
-    while len(all_media) < classic_target and page <= max_pages:
-        # Fetch discover movies from before 1990
-        movies = fetch_discover_movies(
-            language=api_language,
-            page=page,
-            certification_country=certification_country,
-            watch_region=watch_region,
-            original_language=original_language,
-            release_date_lte="1989-12-31"
-        )
-        for movie in movies:
-            if movie["id"] not in seen_ids:
-                processed = process_movie(movie, target_language)
-                if processed and len(all_media) < classic_target:
+
+    print(f"Fetching {target_language} {media_type} (ES region, original_language={target_language}) from TMDB...")
+
+    for label, share, date_gte, date_lte, max_pages in ERAS:
+        era_target = target_count if share is None else len(all_media) + int(target_count * share)
+        print(f"  Fetching {era_target - len(all_media)} items from {label}...")
+        page = 1
+        while len(all_media) < era_target and page <= max_pages:
+            results = fetch_discover(
+                media_type,
+                language=api_language,
+                page=page,
+                certification_country="ES",
+                watch_region="ES",
+                original_language=target_language,
+                date_gte=date_gte,
+                date_lte=date_lte,
+            )
+            if not results:
+                break
+            for result in results:
+                if result["id"] in seen_ids or len(all_media) >= era_target:
+                    continue
+                processed = process(result, target_language)
+                if processed:
                     all_media.append(processed)
-                    seen_ids.add(movie["id"])
-        
-        # Fetch discover TV shows from before 1990
-        tv_shows = fetch_discover_tv_shows(
-            language=api_language,
-            page=page,
-            certification_country=certification_country,
-            watch_region=watch_region,
-            original_language=original_language,
-            air_date_lte="1989-12-31"
-        )
-        for show in tv_shows:
-            if show["id"] not in seen_ids:
-                processed = process_tv_show(show, target_language)
-                if processed and len(all_media) < classic_target:
-                    all_media.append(processed)
-                    seen_ids.add(show["id"])
-        
-        page += 1
-    
-    print(f"  ✓ Fetched {len(all_media)} items from before 1990")
-    
-    # Phase 2: Fetch older content (1990-2020): 80% of target
-    older_target = int(target_count * 0.80) + len(all_media)
-    print(f"  Fetching {older_target - len(all_media)} items from 1990-2020...")
-    page = 1
-    max_pages = 20
-    
-    while len(all_media) < older_target and page <= max_pages:
-        # Fetch discover movies from 1990-2020
-        movies = fetch_discover_movies(
-            language=api_language,
-            page=page,
-            certification_country=certification_country,
-            watch_region=watch_region,
-            original_language=original_language,
-            release_date_gte="1990-01-01",
-            release_date_lte="2019-12-31"
-        )
-        for movie in movies:
-            if movie["id"] not in seen_ids:
-                processed = process_movie(movie, target_language)
-                if processed and len(all_media) < older_target:
-                    all_media.append(processed)
-                    seen_ids.add(movie["id"])
-        
-        # Fetch discover TV shows from 1990-2020
-        tv_shows = fetch_discover_tv_shows(
-            language=api_language,
-            page=page,
-            certification_country=certification_country,
-            watch_region=watch_region,
-            original_language=original_language,
-            air_date_gte="1990-01-01",
-            air_date_lte="2019-12-31"
-        )
-        for show in tv_shows:
-            if show["id"] not in seen_ids:
-                processed = process_tv_show(show, target_language)
-                if processed and len(all_media) < older_target:
-                    all_media.append(processed)
-                    seen_ids.add(show["id"])
-        
-        page += 1
-    
-    count_1990_2020 = len([m for m in all_media if 1990 <= m['year'] < 2020])
-    print(f"  ✓ Fetched {count_1990_2020} items from 1990-2020")
-    
-    # Phase 3: Fetch recent content (2020+): 15% of target
-    recent_target = target_count
-    print(f"  Fetching {recent_target - len(all_media)} items from 2020+...")
-    page = 1
-    max_pages = 10
-    
-    while len(all_media) < target_count and page <= max_pages:
-        # Fetch discover movies from 2020+
-        movies = fetch_discover_movies(
-            language=api_language,
-            page=page,
-            certification_country=certification_country,
-            watch_region=watch_region,
-            original_language=original_language,
-            release_date_gte="2020-01-01"
-        )
-        for movie in movies:
-            if movie["id"] not in seen_ids:
-                processed = process_movie(movie, target_language)
-                if processed and len(all_media) < target_count:
-                    all_media.append(processed)
-                    seen_ids.add(movie["id"])
-        
-        # Fetch discover TV shows from 2020+
-        tv_shows = fetch_discover_tv_shows(
-            language=api_language,
-            page=page,
-            certification_country=certification_country,
-            watch_region=watch_region,
-            original_language=original_language,
-            air_date_gte="2020-01-01"
-        )
-        for show in tv_shows:
-            if show["id"] not in seen_ids:
-                processed = process_tv_show(show, target_language)
-                if processed and len(all_media) < target_count:
-                    all_media.append(processed)
-                    seen_ids.add(show["id"])
-        
-        page += 1
-    
-    recent_count = len([m for m in all_media if m['year'] >= 2020])
-    classic_count = len([m for m in all_media if m['year'] < 1990])
-    print(f"  ✓ Fetched {recent_count} items from 2020+")
-    print(f"\n✓ Total breakdown:")
-    print(f"  - Before 1990: {classic_count} items ({classic_count/len(all_media)*100:.1f}%)")
-    print(f"  - 1990-2020: {count_1990_2020} items ({count_1990_2020/len(all_media)*100:.1f}%)")
-    print(f"  - 2020+: {recent_count} items ({recent_count/len(all_media)*100:.1f}%)")
-    print(f"✓ Found {len(all_media)} {target_language} items total")
+                    seen_ids.add(result["id"])
+            page += 1
+        print(f"  ✓ {len(all_media)} items so far")
+
+    print(f"✓ Found {len(all_media)} {target_language} {media_type} total")
     return all_media[:target_count]
+
 
 def main():
     # Parse command line arguments
